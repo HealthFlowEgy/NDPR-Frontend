@@ -43,6 +43,20 @@
       "bundler": "metro"
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "35.0.0",
+            "kotlinVersion": "1.9.25"
+          },
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
+        }
+      ],
       "expo-router",
       "expo-secure-store",
       [
