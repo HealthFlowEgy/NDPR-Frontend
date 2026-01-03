@@ -2,50 +2,114 @@
  * HealthFlow Mobile App - Authentication Service
  * 
  * Handles OAuth 2.0 + PKCE authentication with Keycloak.
- * Validated against RegistryAdmin realm.
+ * Uses expo-auth-session for Expo SDK 52 compatibility.
  */
 
-import { authorize, refresh, revoke, AuthConfiguration } from 'react-native-app-auth';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import * as Crypto from 'expo-crypto';
 import { config } from '../config/environment';
 import StorageService from './storage.service';
 import { AuthTokens, UserProfile } from '../types';
 
-// Keycloak OAuth configuration
-const authConfig: AuthConfiguration = {
-  issuer: config.keycloak.issuer,
-  clientId: config.keycloak.clientId,
-  redirectUrl: config.oauth.redirectUri,
-  scopes: config.oauth.scopes,
-  usePKCE: config.oauth.usePKCE,
-  serviceConfiguration: {
-    authorizationEndpoint: `${config.keycloak.url}/realms/${config.keycloak.realm}/protocol/openid-connect/auth`,
-    tokenEndpoint: `${config.keycloak.url}/realms/${config.keycloak.realm}/protocol/openid-connect/token`,
-    revocationEndpoint: `${config.keycloak.url}/realms/${config.keycloak.realm}/protocol/openid-connect/revoke`,
-    endSessionEndpoint: `${config.keycloak.url}/realms/${config.keycloak.realm}/protocol/openid-connect/logout`,
-  },
+// Enable web browser redirect
+WebBrowser.maybeCompleteAuthSession();
+
+// Discovery document for Keycloak
+const discovery: AuthSession.DiscoveryDocument = {
+  authorizationEndpoint: `${config.keycloak.url}/realms/${config.keycloak.realm}/protocol/openid-connect/auth`,
+  tokenEndpoint: `${config.keycloak.url}/realms/${config.keycloak.realm}/protocol/openid-connect/token`,
+  revocationEndpoint: `${config.keycloak.url}/realms/${config.keycloak.realm}/protocol/openid-connect/revoke`,
+  endSessionEndpoint: `${config.keycloak.url}/realms/${config.keycloak.realm}/protocol/openid-connect/logout`,
+  userInfoEndpoint: `${config.keycloak.url}/realms/${config.keycloak.realm}/protocol/openid-connect/userinfo`,
 };
 
+// Get redirect URI for the app
+const redirectUri = AuthSession.makeRedirectUri({
+  scheme: 'healthflow',
+  path: 'auth/callback',
+});
+
 class AuthService {
+  private codeVerifier: string | null = null;
+
+  /**
+   * Generate PKCE code verifier and challenge
+   */
+  private async generatePKCE(): Promise<{ codeVerifier: string; codeChallenge: string }> {
+    const randomBytes = await Crypto.getRandomBytesAsync(32);
+    const codeVerifier = this.base64URLEncode(randomBytes);
+    
+    const digest = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      codeVerifier,
+      { encoding: Crypto.CryptoEncoding.BASE64 }
+    );
+    
+    const codeChallenge = digest
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
+    
+    return { codeVerifier, codeChallenge };
+  }
+
+  private base64URLEncode(bytes: Uint8Array): string {
+    const base64 = btoa(String.fromCharCode(...bytes));
+    return base64
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
+  }
+
   /**
    * Initiate OAuth login flow
-   * Opens browser for Keycloak login
    */
   async login(): Promise<AuthTokens> {
     try {
-      const result = await authorize(authConfig);
-      
+      const { codeVerifier, codeChallenge } = await this.generatePKCE();
+      this.codeVerifier = codeVerifier;
+
+      const authRequest = new AuthSession.AuthRequest({
+        clientId: config.keycloak.clientId,
+        redirectUri,
+        scopes: config.oauth.scopes,
+        responseType: AuthSession.ResponseType.Code,
+        codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
+        codeChallenge,
+      });
+
+      const result = await authRequest.promptAsync(discovery);
+
+      if (result.type !== 'success' || !result.params.code) {
+        throw new Error('Authentication cancelled or failed');
+      }
+
+      // Exchange code for tokens
+      const tokenResponse = await AuthSession.exchangeCodeAsync(
+        {
+          clientId: config.keycloak.clientId,
+          code: result.params.code,
+          redirectUri,
+          extraParams: {
+            code_verifier: codeVerifier,
+          },
+        },
+        discovery
+      );
+
       const tokens: AuthTokens = {
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        idToken: result.idToken,
-        expiresAt: result.accessTokenExpirationDate,
+        accessToken: tokenResponse.accessToken,
+        refreshToken: tokenResponse.refreshToken || '',
+        idToken: tokenResponse.idToken || '',
+        expiresAt: tokenResponse.expiresIn
+          ? new Date(Date.now() + tokenResponse.expiresIn * 1000).toISOString()
+          : new Date(Date.now() + 3600000).toISOString(),
       };
 
-      // Store tokens securely
       await StorageService.storeTokens(tokens);
       await StorageService.updateLastActivity();
 
-      // Fetch and store user profile
       const profile = await this.getUserInfo(tokens.accessToken);
       await StorageService.storeUserProfile(profile);
 
@@ -67,15 +131,21 @@ class AuthService {
         throw new Error('No refresh token available');
       }
 
-      const result = await refresh(authConfig, {
-        refreshToken: currentTokens.refreshToken,
-      });
+      const tokenResponse = await AuthSession.refreshAsync(
+        {
+          clientId: config.keycloak.clientId,
+          refreshToken: currentTokens.refreshToken,
+        },
+        discovery
+      );
 
       const tokens: AuthTokens = {
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken || currentTokens.refreshToken,
-        idToken: result.idToken || currentTokens.idToken,
-        expiresAt: result.accessTokenExpirationDate,
+        accessToken: tokenResponse.accessToken,
+        refreshToken: tokenResponse.refreshToken || currentTokens.refreshToken,
+        idToken: tokenResponse.idToken || currentTokens.idToken,
+        expiresAt: tokenResponse.expiresIn
+          ? new Date(Date.now() + tokenResponse.expiresIn * 1000).toISOString()
+          : new Date(Date.now() + 3600000).toISOString(),
       };
 
       await StorageService.storeTokens(tokens);
@@ -84,7 +154,6 @@ class AuthService {
       return tokens;
     } catch (error: any) {
       console.error('Token refresh failed:', error);
-      // Clear tokens on refresh failure
       await this.logout();
       throw new Error('Session expired. Please login again.');
     }
@@ -97,14 +166,16 @@ class AuthService {
     try {
       const tokens = await StorageService.getTokens();
       
-      if (tokens?.accessToken) {
-        await revoke(authConfig, {
-          tokenToRevoke: tokens.accessToken,
-          includeBasicAuth: false,
-        });
+      if (tokens?.accessToken && discovery.revocationEndpoint) {
+        await AuthSession.revokeAsync(
+          {
+            clientId: config.keycloak.clientId,
+            token: tokens.accessToken,
+          },
+          discovery
+        );
       }
     } catch (error) {
-      // Continue with logout even if revocation fails
       console.warn('Token revocation failed:', error);
     } finally {
       await StorageService.clearAll();
@@ -147,9 +218,7 @@ class AuthService {
       return false;
     }
 
-    // Check if token is expired
     if (new Date(tokens.expiresAt) <= new Date()) {
-      // Try to refresh
       try {
         await this.refreshTokens();
         return true;
@@ -171,7 +240,6 @@ class AuthService {
       throw new Error('Not authenticated');
     }
 
-    // Check if token needs refresh (refresh 1 minute before expiry)
     const expiryTime = new Date(tokens.expiresAt).getTime();
     const now = Date.now();
     const oneMinute = 60 * 1000;
@@ -213,6 +281,13 @@ class AuthService {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Get the redirect URI for configuration
+   */
+  getRedirectUri(): string {
+    return redirectUri;
   }
 }
 
