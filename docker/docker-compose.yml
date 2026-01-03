@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  admin-dashboard:
+    build:
+      context: ../admin-dashboard
+      dockerfile: Dockerfile
+    container_name: healthflow-admin
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=${REGISTRY_API_URL}
+      - REACT_APP_KEYCLOAK_URL=${KEYCLOAK_URL}
+      - REACT_APP_KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - REACT_APP_KEYCLOAK_CLIENT_ID=admin-dashboard
+    networks:
+      - healthflow-frontend
+
+  enrollment-portal:
+    build:
+      context: ../enrollment-portal
+      dockerfile: Dockerfile
+    container_name: healthflow-enrollment
+    ports:
+      - "4200:80"
+    environment:
+      - API_URL=${REGISTRY_API_URL}
+      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_CLIENT_ID=enrollment-portal
+    networks:
+      - healthflow-frontend
+
+  professional-dashboard:
+    build:
+      context: ../professional-dashboard
+      dockerfile: Dockerfile
+    container_name: healthflow-professional
+    ports:
+      - "4201:80"
+    environment:
+      - API_URL=${REGISTRY_API_URL}
+      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_CLIENT_ID=professional-dashboard
+    networks:
+      - healthflow-frontend
+
+  public-search:
+    build:
+      context: ../public-search
+      dockerfile: Dockerfile
+    container_name: healthflow-search
+    ports:
+      - "4202:80"
+    environment:
+      - API_URL=${REGISTRY_API_URL}
+    networks:
+      - healthflow-frontend
+
+  nginx:
+    image: nginx:alpine
+    container_name: healthflow-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - admin-dashboard
+      - enrollment-portal
+      - professional-dashboard
+      - public-search
+    networks:
+      - healthflow-frontend
+
+networks:
+  healthflow-frontend:
+    driver: bridge
