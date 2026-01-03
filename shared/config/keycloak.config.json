@@ -1,0 +1,51 @@
+{
+  "appType": "registry",
+  "keycloak": {
+    "url": "https://keycloak.healthflow.tech",
+    "realm": "RegistryAdmin",
+    "clientId": "registry-frontend"
+  },
+  "baseUrl": "https://api.healthflow.tech/api/v1",
+  "domainName": "https://healthflow.tech",
+  "footerText": "HealthFlow Healthcare Professional Registry",
+  "clients": {
+    "admin-portal": {
+      "clientId": "admin-portal",
+      "publicClient": false,
+      "roles": ["system_admin", "registrar"]
+    },
+    "enrollment-portal": {
+      "clientId": "enrollment-portal",
+      "publicClient": true,
+      "roles": ["healthcare_professional"]
+    },
+    "professional-dashboard": {
+      "clientId": "professional-dashboard",
+      "publicClient": false,
+      "roles": ["healthcare_professional"]
+    },
+    "public-search": {
+      "clientId": "public-search",
+      "publicClient": true,
+      "roles": ["public_user"]
+    }
+  },
+  "roles": {
+    "system_admin": {
+      "description": "Full system access",
+      "permissions": ["manage_all", "approve_registrations", "view_analytics", "export_data"]
+    },
+    "registrar": {
+      "description": "Can approve/reject registrations",
+      "permissions": ["approve_registrations", "view_analytics"]
+    },
+    "healthcare_professional": {
+      "description": "Healthcare professional user",
+      "permissions": ["manage_own_profile", "view_credentials", "download_credentials"]
+    },
+    "public_user": {
+      "description": "Public user for search and verification",
+      "permissions": ["search_professionals", "verify_credentials"]
+    }
+  }
+}

@@ -1,51 +1,199 @@
-import React from 'react';
-import { Admin, Resource, ListGuesser, EditGuesser, ShowGuesser } from 'react-admin';
+import React, { useEffect, useState } from 'react';
+import { Admin, Resource, ListGuesser, EditGuesser, ShowGuesser, CustomRoutes } from 'react-admin';
+import { Route } from 'react-router-dom';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy';
 import BusinessIcon from '@mui/icons-material/Business';
+import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
+import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+
 import sunbirdRcDataProvider from './sunbirdRcDataProvider';
+import { authProvider, initKeycloak, keycloak, Permissions } from './authProvider';
+import Dashboard from './components/Dashboard';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
+
+// Loading component
+const LoadingScreen: React.FC = () => (
+    <Box
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+        bgcolor="#f5f5f5"
+    >
+        <img 
+            src="/logo.png" 
+            alt="HealthFlow" 
+            style={{ width: 120, marginBottom: 24 }}
+            onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+            }}
+        />
+        <CircularProgress size={48} sx={{ color: '#1976d2' }} />
+        <Typography variant="h6" sx={{ mt: 2, color: '#666' }}>
+            Initializing Authentication...
+        </Typography>
+    </Box>
+);
+
+// Error component
+const ErrorScreen: React.FC<{ message: string }> = ({ message }) => (
+    <Box
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+        bgcolor="#f5f5f5"
+    >
+        <Typography variant="h5" color="error" gutterBottom>
+            Authentication Error
+        </Typography>
+        <Typography variant="body1" color="textSecondary">
+            {message}
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 2 }}>
+            Please refresh the page or contact support.
+        </Typography>
+    </Box>
+);
 
 function App() {
-  return (
-    <Admin
-      dataProvider={sunbirdRcDataProvider}
-      title="HealthFlow Admin Dashboard"
-    >
-      <Resource
-        name="Doctor"
-        list={ListGuesser}
-        edit={EditGuesser}
-        show={ShowGuesser}
-        icon={LocalHospitalIcon}
-        options={{ label: 'Doctors' }}
-      />
-      <Resource
-        name="Nurse"
-        list={ListGuesser}
-        edit={EditGuesser}
-        show={ShowGuesser}
-        icon={MedicalServicesIcon}
-        options={{ label: 'Nurses' }}
-      />
-      <Resource
-        name="Pharmacist"
-        list={ListGuesser}
-        edit={EditGuesser}
-        show={ShowGuesser}
-        icon={LocalPharmacyIcon}
-        options={{ label: 'Pharmacists' }}
-      />
-      <Resource
-        name="HealthFacility"
-        list={ListGuesser}
-        edit={EditGuesser}
-        show={ShowGuesser}
-        icon={BusinessIcon}
-        options={{ label: 'Health Facilities' }}
-      />
-    </Admin>
-  );
+    const [keycloakReady, setKeycloakReady] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        initKeycloak()
+            .then((authenticated) => {
+                if (authenticated) {
+                    console.log('Keycloak authenticated successfully');
+                    setKeycloakReady(true);
+                } else {
+                    // This shouldn't happen with 'login-required' onLoad
+                    setError('Authentication required');
+                }
+            })
+            .catch((err) => {
+                console.error('Keycloak initialization failed:', err);
+                setError('Failed to initialize authentication. Please try again.');
+            });
+
+        // Token refresh handler
+        keycloak.onTokenExpired = () => {
+            console.log('Token expired, refreshing...');
+            keycloak.updateToken(30).catch(() => {
+                console.error('Failed to refresh token');
+                keycloak.login();
+            });
+        };
+    }, []);
+
+    if (error) {
+        return <ErrorScreen message={error} />;
+    }
+
+    if (!keycloakReady) {
+        return <LoadingScreen />;
+    }
+
+    return (
+        <Admin
+            dataProvider={sunbirdRcDataProvider}
+            authProvider={authProvider}
+            dashboard={Dashboard}
+            title="HealthFlow Admin Dashboard"
+            requireAuth
+        >
+            {(permissions: Permissions) => (
+                <>
+                    {/* Doctor Resource */}
+                    {permissions.canManageDoctors && (
+                        <Resource
+                            name="Doctor"
+                            list={ListGuesser}
+                            edit={EditGuesser}
+                            show={ShowGuesser}
+                            icon={LocalHospitalIcon}
+                            options={{ label: 'Doctors' }}
+                        />
+                    )}
+
+                    {/* Nurse Resource */}
+                    {permissions.canManageNurses && (
+                        <Resource
+                            name="Nurse"
+                            list={ListGuesser}
+                            edit={EditGuesser}
+                            show={ShowGuesser}
+                            icon={MedicalServicesIcon}
+                            options={{ label: 'Nurses' }}
+                        />
+                    )}
+
+                    {/* Pharmacist Resource */}
+                    {permissions.canManagePharmacists && (
+                        <Resource
+                            name="Pharmacist"
+                            list={ListGuesser}
+                            edit={EditGuesser}
+                            show={ShowGuesser}
+                            icon={LocalPharmacyIcon}
+                            options={{ label: 'Pharmacists' }}
+                        />
+                    )}
+
+                    {/* Physiotherapist Resource */}
+                    {permissions.canManagePhysiotherapists && (
+                        <Resource
+                            name="Physiotherapist"
+                            list={ListGuesser}
+                            edit={EditGuesser}
+                            show={ShowGuesser}
+                            icon={AccessibilityNewIcon}
+                            options={{ label: 'Physiotherapists' }}
+                        />
+                    )}
+
+                    {/* Dentist Resource */}
+                    {permissions.canManageDentists && (
+                        <Resource
+                            name="Dentist"
+                            list={ListGuesser}
+                            edit={EditGuesser}
+                            show={ShowGuesser}
+                            icon={MedicalInformationIcon}
+                            options={{ label: 'Dentists' }}
+                        />
+                    )}
+
+                    {/* Health Facility Resource */}
+                    {permissions.canManageFacilities && (
+                        <Resource
+                            name="HealthFacility"
+                            list={ListGuesser}
+                            edit={EditGuesser}
+                            show={ShowGuesser}
+                            icon={BusinessIcon}
+                            options={{ label: 'Health Facilities' }}
+                        />
+                    )}
+
+                    {/* Custom Routes */}
+                    <CustomRoutes>
+                        {permissions.canViewAnalytics && (
+                            <Route path="/analytics" element={<AnalyticsDashboard />} />
+                        )}
+                    </CustomRoutes>
+                </>
+            )}
+        </Admin>
+    );
 }
 
 export default App;
