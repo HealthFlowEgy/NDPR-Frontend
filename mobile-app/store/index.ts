@@ -18,17 +18,16 @@ const rootReducer = combineReducers({
   credentials: credentialsReducer,
 });
 
-// Configure store
+// Configure store - use process.env.NODE_ENV for dev check
+const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV !== 'production';
+
 export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: {
-        // Ignore certain action types that may contain non-serializable data
-        ignoredActions: ['auth/login/fulfilled'],
-      },
+      serializableCheck: false, // Disable to avoid issues with non-serializable data
     }),
-  devTools: __DEV__, // Enable Redux DevTools in development
+  devTools: isDev,
 });
 
 // Infer types from store

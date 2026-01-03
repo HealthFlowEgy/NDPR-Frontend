@@ -8,12 +8,17 @@
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import * as Crypto from 'expo-crypto';
+import { Platform } from 'react-native';
 import { config } from '../config/environment';
 import StorageService from './storage.service';
 import { AuthTokens, UserProfile } from '../types';
 
-// Enable web browser redirect
-WebBrowser.maybeCompleteAuthSession();
+// Enable web browser redirect - wrapped in try-catch for safety
+try {
+  WebBrowser.maybeCompleteAuthSession();
+} catch (e) {
+  console.warn('WebBrowser.maybeCompleteAuthSession failed:', e);
+}
 
 // Discovery document for Keycloak
 const discovery: AuthSession.DiscoveryDocument = {
@@ -24,38 +29,72 @@ const discovery: AuthSession.DiscoveryDocument = {
   userInfoEndpoint: `${config.keycloak.url}/realms/${config.keycloak.realm}/protocol/openid-connect/userinfo`,
 };
 
-// Get redirect URI for the app
-const redirectUri = AuthSession.makeRedirectUri({
-  scheme: 'healthflow',
-  path: 'auth/callback',
-});
+// Get redirect URI for the app - with fallback
+const getRedirectUri = () => {
+  try {
+    return AuthSession.makeRedirectUri({
+      scheme: 'healthflow',
+      path: 'auth/callback',
+    });
+  } catch (e) {
+    console.warn('Failed to create redirect URI:', e);
+    return 'healthflow://auth/callback';
+  }
+};
 
 class AuthService {
   private codeVerifier: string | null = null;
+  private redirectUri: string;
+
+  constructor() {
+    this.redirectUri = getRedirectUri();
+  }
 
   /**
    * Generate PKCE code verifier and challenge
    */
   private async generatePKCE(): Promise<{ codeVerifier: string; codeChallenge: string }> {
-    const randomBytes = await Crypto.getRandomBytesAsync(32);
-    const codeVerifier = this.base64URLEncode(randomBytes);
-    
-    const digest = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      codeVerifier,
-      { encoding: Crypto.CryptoEncoding.BASE64 }
-    );
-    
-    const codeChallenge = digest
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
-    
-    return { codeVerifier, codeChallenge };
+    try {
+      const randomBytes = await Crypto.getRandomBytesAsync(32);
+      const codeVerifier = this.base64URLEncode(randomBytes);
+      
+      const digest = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        codeVerifier,
+        { encoding: Crypto.CryptoEncoding.BASE64 }
+      );
+      
+      const codeChallenge = digest
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+      
+      return { codeVerifier, codeChallenge };
+    } catch (error) {
+      console.error('PKCE generation failed:', error);
+      throw new Error('Failed to generate PKCE challenge');
+    }
   }
 
   private base64URLEncode(bytes: Uint8Array): string {
-    const base64 = btoa(String.fromCharCode(...bytes));
+    // Use a safer encoding method
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    
+    // Use global btoa if available, otherwise use Buffer
+    let base64: string;
+    if (typeof btoa !== 'undefined') {
+      base64 = btoa(binary);
+    } else if (typeof Buffer !== 'undefined') {
+      base64 = Buffer.from(binary, 'binary').toString('base64');
+    } else {
+      // Fallback - shouldn't happen in React Native
+      throw new Error('No base64 encoding available');
+    }
+    
     return base64
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
@@ -72,7 +111,7 @@ class AuthService {
 
       const authRequest = new AuthSession.AuthRequest({
         clientId: config.keycloak.clientId,
-        redirectUri,
+        redirectUri: this.redirectUri,
         scopes: config.oauth.scopes,
         responseType: AuthSession.ResponseType.Code,
         codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
@@ -90,7 +129,7 @@ class AuthService {
         {
           clientId: config.keycloak.clientId,
           code: result.params.code,
-          redirectUri,
+          redirectUri: this.redirectUri,
           extraParams: {
             code_verifier: codeVerifier,
           },
@@ -212,22 +251,27 @@ class AuthService {
    * Check if user is authenticated
    */
   async isAuthenticated(): Promise<boolean> {
-    const tokens = await StorageService.getTokens();
-    
-    if (!tokens) {
-      return false;
-    }
-
-    if (new Date(tokens.expiresAt) <= new Date()) {
-      try {
-        await this.refreshTokens();
-        return true;
-      } catch {
+    try {
+      const tokens = await StorageService.getTokens();
+      
+      if (!tokens) {
         return false;
       }
-    }
 
-    return true;
+      if (new Date(tokens.expiresAt) <= new Date()) {
+        try {
+          await this.refreshTokens();
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.warn('isAuthenticated check failed:', error);
+      return false;
+    }
   }
 
   /**
@@ -256,15 +300,20 @@ class AuthService {
    * Check and refresh session activity
    */
   async checkSession(): Promise<boolean> {
-    const isExpired = await StorageService.isSessionExpired(config.security.sessionTimeoutMinutes);
-    
-    if (isExpired) {
-      await this.logout();
+    try {
+      const isExpired = await StorageService.isSessionExpired(config.security.sessionTimeoutMinutes);
+      
+      if (isExpired) {
+        await this.logout();
+        return false;
+      }
+
+      await StorageService.updateLastActivity();
+      return true;
+    } catch (error) {
+      console.warn('checkSession failed:', error);
       return false;
     }
-
-    await StorageService.updateLastActivity();
-    return true;
   }
 
   /**
@@ -276,7 +325,18 @@ class AuthService {
       if (parts.length !== 3) return null;
       
       const payload = parts[1];
-      const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+      // Handle base64url decoding
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      
+      let decoded: string;
+      if (typeof atob !== 'undefined') {
+        decoded = atob(base64);
+      } else if (typeof Buffer !== 'undefined') {
+        decoded = Buffer.from(base64, 'base64').toString('utf-8');
+      } else {
+        return null;
+      }
+      
       return JSON.parse(decoded);
     } catch {
       return null;
@@ -287,7 +347,7 @@ class AuthService {
    * Get the redirect URI for configuration
    */
   getRedirectUri(): string {
-    return redirectUri;
+    return this.redirectUri;
   }
 }
 

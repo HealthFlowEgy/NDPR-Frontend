@@ -2,7 +2,6 @@
  * HealthFlow Mobile App - Notification Service
  * 
  * Handles push notifications for signing requests and credential updates.
- * 
  * Note: Requires Firebase/APNs configuration for production.
  */
 
@@ -11,231 +10,201 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { PushNotification } from '../types';
 
-// Configure notification behavior
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
-
-// Notification channel for Android
 const SIGNING_CHANNEL_ID = 'signing-requests';
 
 class NotificationService {
   private expoPushToken: string | null = null;
+  private isInitialized = false;
 
-  /**
-   * Initialize notification service
-   */
   async initialize(): Promise<void> {
-    // Create Android notification channel
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync(SIGNING_CHANNEL_ID, {
-        name: 'Signing Requests',
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#3498db',
-        sound: 'default',
-      });
-    }
+    if (this.isInitialized) return;
 
-    // Request permission and get token
-    await this.registerForPushNotifications();
+    try {
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+        }),
+      });
+
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync(SIGNING_CHANNEL_ID, {
+          name: 'Signing Requests',
+          importance: Notifications.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#3498db',
+          sound: 'default',
+        });
+      }
+
+      await this.registerForPushNotifications();
+      this.isInitialized = true;
+    } catch (error) {
+      console.warn('Failed to initialize notifications:', error);
+    }
   }
 
-  /**
-   * Register for push notifications
-   */
   async registerForPushNotifications(): Promise<string | null> {
-    if (!Device.isDevice) {
-      console.log('Push notifications require a physical device');
-      return null;
-    }
-
-    // Check existing permission
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    // Request permission if not granted
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      console.log('Push notification permission not granted');
-      return null;
-    }
-
-    // Get Expo push token
     try {
+      if (!Device.isDevice) {
+        console.log('Push notifications require a physical device');
+        return null;
+      }
+
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        console.log('Push notification permission not granted');
+        return null;
+      }
+
       const token = await Notifications.getExpoPushTokenAsync({
-        projectId: 'healthflow-mobile-app', // Replace with your EAS project ID
+        projectId: '1def6c0c-9145-45c0-9c0b-6b1698a676a7',
       });
       this.expoPushToken = token.data;
-      console.log('Expo Push Token:', this.expoPushToken);
       return this.expoPushToken;
     } catch (error) {
-      console.error('Failed to get push token:', error);
+      console.warn('Failed to get push token:', error);
       return null;
     }
   }
 
-  /**
-   * Get current push token
-   */
   getExpoPushToken(): string | null {
     return this.expoPushToken;
   }
 
-  /**
-   * Add notification received listener
-   */
   addNotificationReceivedListener(
     callback: (notification: Notifications.Notification) => void
   ): Notifications.Subscription {
     return Notifications.addNotificationReceivedListener(callback);
   }
 
-  /**
-   * Add notification response listener (when user taps notification)
-   */
   addNotificationResponseListener(
     callback: (response: Notifications.NotificationResponse) => void
   ): Notifications.Subscription {
     return Notifications.addNotificationResponseReceivedListener(callback);
   }
 
-  /**
-   * Schedule a local notification
-   */
   async scheduleLocalNotification(
     title: string,
     body: string,
     data?: Record<string, unknown>,
     trigger?: Notifications.NotificationTriggerInput
   ): Promise<string> {
-    return Notifications.scheduleNotificationAsync({
-      content: {
-        title,
-        body,
-        data,
-        sound: 'default',
-        ...(Platform.OS === 'android' && {
-          channelId: SIGNING_CHANNEL_ID,
-        }),
-      },
-      trigger: trigger || null, // null means immediate
-    });
+    try {
+      return await Notifications.scheduleNotificationAsync({
+        content: {
+          title,
+          body,
+          data,
+          sound: 'default',
+          ...(Platform.OS === 'android' && { channelId: SIGNING_CHANNEL_ID }),
+        },
+        trigger: trigger || null,
+      });
+    } catch (error) {
+      console.warn('Failed to schedule notification:', error);
+      return '';
+    }
   }
 
-  /**
-   * Show signing request notification
-   */
   async showSigningRequestNotification(
     requestId: string,
     documentType: string,
     requesterName: string,
     isUrgent = false
   ): Promise<string> {
-    return this.scheduleLocalNotification(
-      isUrgent ? '🔴 Urgent Signing Request' : '📝 New Signing Request',
-      `${requesterName} is requesting your signature on a ${documentType.replace('_', ' ')}.`,
-      {
-        type: 'signing_request',
-        requestId,
-        documentType,
-        requesterName,
-        isUrgent,
-      }
-    );
+    const title = isUrgent ? 'Urgent Signing Request' : 'New Signing Request';
+    const body = `${requesterName} is requesting your signature on a ${documentType.replace('_', ' ')}.`;
+    return this.scheduleLocalNotification(title, body, {
+      type: 'signing_request',
+      requestId,
+      documentType,
+      requesterName,
+      isUrgent,
+    });
   }
 
-  /**
-   * Show credential issued notification
-   */
   async showCredentialIssuedNotification(
     credentialType: string,
     issuerName: string
   ): Promise<string> {
     return this.scheduleLocalNotification(
-      '🎉 New Credential Issued',
+      'New Credential Issued',
       `${issuerName} has issued you a new ${credentialType} credential.`,
-      {
-        type: 'credential_issued',
-        credentialType,
-        issuerName,
-      }
+      { type: 'credential_issued', credentialType, issuerName }
     );
   }
 
-  /**
-   * Show credential expiring notification
-   */
   async showCredentialExpiringNotification(
     credentialType: string,
     daysRemaining: number
   ): Promise<string> {
     return this.scheduleLocalNotification(
-      '⏰ Credential Expiring Soon',
+      'Credential Expiring Soon',
       `Your ${credentialType} credential will expire in ${daysRemaining} days.`,
-      {
-        type: 'credential_expiring',
-        credentialType,
-        daysRemaining,
-      }
+      { type: 'credential_expiring', credentialType, daysRemaining }
     );
   }
 
-  /**
-   * Clear all notifications
-   */
   async clearAllNotifications(): Promise<void> {
-    await Notifications.dismissAllNotificationsAsync();
+    try {
+      await Notifications.dismissAllNotificationsAsync();
+    } catch (error) {
+      console.warn('Failed to clear notifications:', error);
+    }
   }
 
-  /**
-   * Set badge count
-   */
   async setBadgeCount(count: number): Promise<void> {
-    await Notifications.setBadgeCountAsync(count);
+    try {
+      await Notifications.setBadgeCountAsync(count);
+    } catch (error) {
+      console.warn('Failed to set badge count:', error);
+    }
   }
 
-  /**
-   * Get badge count
-   */
   async getBadgeCount(): Promise<number> {
-    return Notifications.getBadgeCountAsync();
+    try {
+      return await Notifications.getBadgeCountAsync();
+    } catch (error) {
+      console.warn('Failed to get badge count:', error);
+      return 0;
+    }
   }
 
-  /**
-   * Cancel all scheduled notifications
-   */
   async cancelAllScheduledNotifications(): Promise<void> {
-    await Notifications.cancelAllScheduledNotificationsAsync();
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+    } catch (error) {
+      console.warn('Failed to cancel notifications:', error);
+    }
   }
 
-  /**
-   * Parse notification data
-   */
   parseNotificationData(notification: Notifications.Notification): PushNotification | null {
-    const data = notification.request.content.data;
-    
-    if (!data || !data.type) {
+    try {
+      const data = notification.request.content.data;
+      if (!data || !data.type) return null;
+
+      return {
+        id: notification.request.identifier,
+        type: data.type as PushNotification['type'],
+        title: notification.request.content.title || '',
+        body: notification.request.content.body || '',
+        data,
+        read: false,
+        created_at: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.warn('Failed to parse notification:', error);
       return null;
     }
-
-    return {
-      id: notification.request.identifier,
-      type: data.type as PushNotification['type'],
-      title: notification.request.content.title || '',
-      body: notification.request.content.body || '',
-      data,
-      read: false,
-      created_at: new Date().toISOString(),
-    };
   }
 }
 

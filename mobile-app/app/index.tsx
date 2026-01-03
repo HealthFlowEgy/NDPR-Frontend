@@ -1,13 +1,35 @@
 /**
  * HealthFlow Mobile App - Index Route
  * 
- * Initial route that redirects based on auth state.
+ * Initial route that shows loading while auth state is determined.
+ * The actual navigation is handled by AuthObserver in _layout.tsx.
  */
 
-import { Redirect } from 'expo-router';
+import React from 'react';
+import { View, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator } from 'react-native-paper';
 
 export default function Index() {
-  // This will be handled by the auth observer in _layout.tsx
-  // Default redirect to auth/login, the observer will redirect to main if authenticated
-  return <Redirect href="/(auth)/login" />;
+  // This screen is shown briefly while the auth observer determines
+  // where to navigate. It will be replaced by either login or main.
+  return (
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color="#3498db" />
+      <Text style={styles.text}>Starting HealthFlow...</Text>
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  text: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#7f8c8d',
+  },
+});

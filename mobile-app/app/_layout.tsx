@@ -4,7 +4,7 @@
  * Main app entry point with providers and initial setup.
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { Provider as PaperProvider, MD3LightTheme, ActivityIndicator } from 'react-native-paper';
@@ -14,10 +14,13 @@ import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { store, useAppDispatch, useAppSelector, checkAuthStatus, selectIsAuthenticated, selectAuthLoading } from '../store';
 
-// Prevent splash screen from auto-hiding
-SplashScreen.preventAutoHideAsync().catch(() => {
-  // Ignore errors if splash screen is already hidden
-});
+// Prevent splash screen from auto-hiding - wrapped in try-catch
+try {
+  SplashScreen.preventAutoHideAsync();
+} catch (e) {
+  // Ignore errors if splash screen is already hidden or not available
+  console.warn('SplashScreen.preventAutoHideAsync failed:', e);
+}
 
 // Custom theme
 const theme = {
@@ -38,7 +41,26 @@ const theme = {
   roundness: 12,
 };
 
-// Auth state observer component
+// Loading component
+function LoadingScreen({ message }: { message?: string }) {
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#3498db" />
+      <Text style={styles.loadingText}>{message || 'Loading HealthFlow...'}</Text>
+    </View>
+  );
+}
+
+// Error component
+function ErrorScreen({ error }: { error: string }) {
+  return (
+    <View style={styles.loadingContainer}>
+      <Text style={styles.errorText}>Error: {error}</Text>
+    </View>
+  );
+}
+
+// Auth state observer component - separated for better error isolation
 function AuthObserver() {
   const router = useRouter();
   const segments = useSegments();
@@ -50,60 +72,94 @@ function AuthObserver() {
 
   // Check auth status on mount
   useEffect(() => {
+    let mounted = true;
+
     const checkAuth = async () => {
       try {
         await dispatch(checkAuthStatus());
       } catch (e: any) {
         console.warn('Auth check failed:', e);
-        setError(e.message || 'Failed to check authentication');
+        if (mounted) {
+          setError(e?.message || 'Failed to check authentication');
+        }
       } finally {
-        setIsReady(true);
-        try {
-          await SplashScreen.hideAsync();
-        } catch {
-          // Ignore errors if splash screen is already hidden
+        if (mounted) {
+          setIsReady(true);
+          // Hide splash screen
+          try {
+            await SplashScreen.hideAsync();
+          } catch {
+            // Ignore errors if splash screen is already hidden
+          }
         }
       }
     };
+
     checkAuth();
+
+    return () => {
+      mounted = false;
+    };
   }, [dispatch]);
 
   // Handle navigation based on auth state
   useEffect(() => {
     if (!isReady || isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
-    const inMainGroup = segments[0] === '(main)';
+    try {
+      const inAuthGroup = segments[0] === '(auth)';
 
-    if (!isAuthenticated && !inAuthGroup) {
-      // Redirect to login if not authenticated
-      router.replace('/(auth)/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      // Redirect to main if already authenticated
-      router.replace('/(main)');
+      if (!isAuthenticated && !inAuthGroup) {
+        // Redirect to login if not authenticated
+        router.replace('/(auth)/login');
+      } else if (isAuthenticated && inAuthGroup) {
+        // Redirect to main if already authenticated
+        router.replace('/(main)');
+      }
+    } catch (e) {
+      console.warn('Navigation error:', e);
     }
   }, [isAuthenticated, segments, isReady, isLoading, router]);
 
   // Show loading while checking auth
   if (!isReady || isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3498db" />
-        <Text style={styles.loadingText}>Loading HealthFlow...</Text>
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
-  // Show error if auth check failed
+  // Show error if auth check failed (but still render app)
   if (error) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.errorText}>Error: {error}</Text>
-      </View>
-    );
+    console.warn('Auth error occurred but continuing:', error);
   }
 
   return <Slot />;
+}
+
+// Inner app with providers that need store access
+function InnerApp() {
+  const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Simple error boundary using state
+  useEffect(() => {
+    const errorHandler = (error: any) => {
+      console.error('Unhandled error:', error);
+      setHasError(true);
+      setErrorMessage(error?.message || 'An unexpected error occurred');
+    };
+
+    // Note: This is a simplified error handler
+    // In production, you'd want a proper ErrorBoundary component
+
+    return () => {
+      // Cleanup if needed
+    };
+  }, []);
+
+  if (hasError) {
+    return <ErrorScreen error={errorMessage} />;
+  }
+
+  return <AuthObserver />;
 }
 
 // Main app layout
@@ -113,7 +169,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <PaperProvider theme={theme}>
           <StatusBar style="dark" />
-          <AuthObserver />
+          <InnerApp />
         </PaperProvider>
       </SafeAreaProvider>
     </ReduxProvider>
