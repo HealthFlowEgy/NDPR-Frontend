@@ -1,0 +1,29 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="200" fill="#3498db"/>
+  
+  <!-- Hospital building icon -->
+  <g transform="translate(256, 256) scale(2)">
+    <!-- Main building -->
+    <rect x="64" y="128" width="128" height="128" fill="white"/>
+    
+    <!-- Cross -->
+    <rect x="108" y="148" width="40" height="88" fill="#3498db"/>
+    <rect x="88" y="172" width="80" height="40" fill="#3498db"/>
+    
+    <!-- Roof -->
+    <polygon points="128,64 208,128 48,128" fill="white"/>
+    
+    <!-- Door -->
+    <rect x="108" y="216" width="40" height="40" fill="#2980b9"/>
+    
+    <!-- Windows -->
+    <rect x="72" y="148" width="24" height="24" fill="#2980b9"/>
+    <rect x="160" y="148" width="24" height="24" fill="#2980b9"/>
+  </g>
+  
+  <!-- HealthFlow text -->
+  <text x="512" y="900" text-anchor="middle" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="white">
+    HealthFlow
+  </text>
+</svg>
