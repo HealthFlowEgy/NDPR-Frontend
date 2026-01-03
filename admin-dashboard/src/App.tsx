@@ -84,14 +84,7 @@ function App() {
                 setError('Failed to initialize authentication. Please try again.');
             });
 
-        // Token refresh handler
-        keycloak.onTokenExpired = () => {
-            console.log('Token expired, refreshing...');
-            keycloak.updateToken(30).catch(() => {
-                console.error('Failed to refresh token');
-                keycloak.login();
-            });
-        };
+        // Token refresh is handled by authProvider.checkError
     }, []);
 
     if (error) {
