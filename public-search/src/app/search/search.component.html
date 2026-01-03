@@ -1,0 +1,312 @@
+<div class="search-container">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="assets/healthflow-logo.png" alt="HealthFlow" class="logo">
+        <span class="brand-name">HealthFlow Registry</span>
+      </div>
+      <nav class="nav-links">
+        <a href="https://enroll.healthflow.tech">Register</a>
+        <a href="https://dashboard.healthflow.tech">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Healthcare Professional Registry</h1>
+      <p>Search and verify licensed healthcare professionals in Egypt</p>
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" 
+               placeholder="Search by name, registration number..." 
+               [(ngModel)]="searchQuery"
+               (keyup.enter)="search()">
+        <button mat-raised-button color="primary" (click)="search()">Search</button>
+      </div>
+      <div class="quick-stats">
+        <div class="stat">
+          <span class="number">5,877</span>
+          <span class="label">Professionals</span>
+        </div>
+        <div class="stat">
+          <span class="number">156</span>
+          <span class="label">Facilities</span>
+        </div>
+        <div class="stat">
+          <span class="number">98%</span>
+          <span class="label">Verified</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filters Section -->
+  <section class="filters-section">
+    <div class="filters-content">
+      <h3>Filter Results</h3>
+      <div class="filters-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Professional Type</mat-label>
+          <mat-select [(ngModel)]="filters.type" (selectionChange)="applyFilters()">
+            @for (type of professionalTypes; track type.value) {
+              <mat-option [value]="type.value">{{ type.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Specialization</mat-label>
+          <mat-select [(ngModel)]="filters.specialization" (selectionChange)="applyFilters()">
+            @for (spec of specializations; track spec.value) {
+              <mat-option [value]="spec.value">{{ spec.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Location</mat-label>
+          <mat-select [(ngModel)]="filters.location" (selectionChange)="applyFilters()">
+            @for (loc of locations; track loc.value) {
+              <mat-option [value]="loc.value">{{ loc.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="filters.status" (selectionChange)="applyFilters()">
+            @for (status of statuses; track status.value) {
+              <mat-option [value]="status.value">{{ status.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <button mat-button (click)="clearFilters()">
+        <mat-icon>clear</mat-icon> Clear
+      </button>
+    </div>
+  </section>
+
+  <!-- Results Section -->
+  <section class="results-section">
+    <div class="results-content">
+      <div class="results-header">
+        <h2>Search Results</h2>
+        <span class="results-count">{{ filteredResults.length }} found</span>
+      </div>
+
+      @if (!loading && filteredResults.length > 0) {
+        <div class="results-grid">
+          @for (professional of paginatedResults; track professional.id) {
+            <div class="professional-card">
+              <div class="card-header">
+                <div class="avatar" [style.background-color]="getTypeColor(professional.type)">
+                  {{ getInitials(professional.name) }}
+                </div>
+                <div class="card-info">
+                  <h4>{{ professional.name }}</h4>
+                  <span class="type">{{ professional.type }}</span>
+                  <span class="status-badge" [class.active]="professional.status === 'Active'" [class.pending]="professional.status === 'Pending'">
+                    {{ professional.status }}
+                  </span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="detail-row">
+                  <mat-icon>badge</mat-icon>
+                  <span>{{ professional.registrationNumber }}</span>
+                </div>
+                <div class="detail-row">
+                  <mat-icon>medical_services</mat-icon>
+                  <span>{{ professional.specialization }}</span>
+                </div>
+                <div class="detail-row">
+                  <mat-icon>location_on</mat-icon>
+                  <span>{{ professional.location }}</span>
+                </div>
+              </div>
+              <div class="card-actions">
+                <button mat-stroked-button (click)="viewDetails(professional)">Details</button>
+                <button mat-raised-button color="primary" (click)="verifyProfessional(professional)">Verify</button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (loading) {
+        <div class="loading-state">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      }
+
+      @if (!loading && filteredResults.length === 0) {
+        <div class="empty-state">
+          <mat-icon>search_off</mat-icon>
+          <p>No professionals found matching your criteria</p>
+        </div>
+      }
+
+      @if (filteredResults.length > pageSize) {
+        <div class="pagination">
+          <button mat-icon-button (click)="previousPage()" [disabled]="currentPage === 0">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span>Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+          <button mat-icon-button (click)="nextPage()" [disabled]="currentPage >= totalPages - 1">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Details Modal -->
+  @if (showDetailsModal && selectedProfessional) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <button class="close-btn" (click)="closeModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+        <div class="modal-header" [style.background]="'linear-gradient(135deg, ' + getTypeColor(selectedProfessional.type) + ', #4a5a87)'">
+          <div class="modal-avatar" [style.background-color]="'rgba(255,255,255,0.2)'">
+            {{ getInitials(selectedProfessional.name) }}
+          </div>
+          <div class="modal-title">
+            <h2>{{ selectedProfessional.name }}</h2>
+            <span class="type-badge">{{ selectedProfessional.type }}</span>
+            <span class="status-badge large" [class.active]="selectedProfessional.status === 'Active'">
+              {{ selectedProfessional.status }}
+            </span>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="info-section">
+            <h3>Professional Information</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Registration Number</span>
+                <span class="value">{{ selectedProfessional.registrationNumber }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Specialization</span>
+                <span class="value">{{ selectedProfessional.specialization }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Location</span>
+                <span class="value">{{ selectedProfessional.location }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Facility</span>
+                <span class="value">{{ selectedProfessional.facility }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">License Expiry</span>
+                <span class="value">{{ selectedProfessional.licenseExpiry }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="credentials-section">
+            <h3>Credentials</h3>
+            <div class="credential-list">
+              @for (cred of selectedProfessional.credentials; track cred.name) {
+                <div class="credential-item">
+                  <mat-icon class="cred-icon">verified</mat-icon>
+                  <div class="cred-info">
+                    <span class="cred-title">{{ cred.name }}</span>
+                    <span class="cred-issuer">{{ cred.issuer }}</span>
+                    <span class="cred-date">Issued: {{ cred.date }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button mat-button (click)="closeModal()">Close</button>
+          <button mat-raised-button color="primary" (click)="verifyProfessional(selectedProfessional)">
+            <mat-icon>verified_user</mat-icon> Verify
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Verify Modal -->
+  @if (showVerifyModal && selectedProfessional) {
+    <div class="modal-overlay" (click)="closeVerifyModal()">
+      <div class="modal-content verify-modal" (click)="$event.stopPropagation()">
+        <div class="verify-header verified">
+          <mat-icon>verified</mat-icon>
+          <h2>Verification Successful</h2>
+        </div>
+        <div class="verify-body">
+          <div class="verify-professional">
+            <div class="avatar" [style.background-color]="getTypeColor(selectedProfessional.type)">
+              {{ getInitials(selectedProfessional.name) }}
+            </div>
+            <div class="info">
+              <h3>{{ selectedProfessional.name }}</h3>
+              <p>{{ selectedProfessional.type }} - {{ selectedProfessional.registrationNumber }}</p>
+            </div>
+          </div>
+          <div class="verify-details">
+            <div class="verify-item">
+              <mat-icon class="success">check_circle</mat-icon>
+              <span>Registration is valid and active</span>
+            </div>
+            <div class="verify-item">
+              <mat-icon class="success">check_circle</mat-icon>
+              <span>License expires {{ selectedProfessional.licenseExpiry }}</span>
+            </div>
+            <div class="verify-item">
+              <mat-icon class="success">check_circle</mat-icon>
+              <span>Credentials verified on blockchain</span>
+            </div>
+          </div>
+          <div class="verify-timestamp">
+            <mat-icon>schedule</mat-icon>
+            <span>Verified at {{ verificationTimestamp }}</span>
+          </div>
+          <div class="verify-qr">
+            <p>Scan to verify independently</p>
+            <div class="qr-placeholder">
+              <mat-icon>qr_code_2</mat-icon>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button mat-button (click)="closeVerifyModal()">Close</button>
+          <button mat-raised-button color="primary" (click)="downloadVerification()">
+            <mat-icon>download</mat-icon> Download Proof
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <img src="assets/healthflow-logo.png" alt="HealthFlow" class="footer-logo">
+        <p>Egyptian Healthcare Professional Registry</p>
+      </div>
+      <div class="footer-section">
+        <h4>Links</h4>
+        <a href="https://enroll.healthflow.tech">Register</a>
+        <a href="https://admin.healthflow.tech">Admin</a>
+      </div>
+      <div class="footer-section">
+        <h4>Contact</h4>
+        <p>support&#64;healthflow.tech</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 HealthFlow Medical HCX</p>
+    </div>
+  </footer>
+</div>
