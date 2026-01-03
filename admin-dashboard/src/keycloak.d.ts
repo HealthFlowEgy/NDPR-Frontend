@@ -41,5 +41,6 @@ declare module 'keycloak-js' {
     authenticated?: boolean;
     token?: string;
     tokenParsed?: KeycloakTokenParsed;
+    onTokenExpired?: () => void;
   }
 }
