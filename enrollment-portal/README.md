@@ -1,48 +1,35 @@
 # HealthFlow Enrollment Portal
 
-Angular-based self-service enrollment portal for healthcare professionals and entities.
+Angular-based self-service registration portal for healthcare professionals.
 
 ## Overview
 
-This portal allows healthcare professionals (doctors, nurses, pharmacists) and healthcare entities (hospitals, clinics) to self-register with the HealthFlow registry.
+This portal allows healthcare professionals (Doctors, Nurses, Pharmacists) to self-register in the HealthFlow Registry. The registration process includes personal information, professional credentials, and document verification.
 
 ## Features
 
-- **Self-Registration** - Healthcare professionals can register themselves
-- **Document Upload** - Upload supporting documents (licenses, certificates)
-- **KYC Verification** - Integration with identity verification services
-- **DID Generation** - Automatic generation of Decentralized Identifiers
-- **Credential Issuance** - Receive Verifiable Credentials upon approval
+- **Multi-step Registration Form** - Guided 3-step registration process
+- **Professional Type Selection** - Doctor, Nurse, or Pharmacist
+- **Personal Information** - Name, DOB, National ID, Contact details
+- **Professional Details** - Registration number, qualifications, specialization
+- **Document Checklist** - Required documents for verification
+- **Consent Management** - Terms acceptance before submission
 
-## Enrollment Flow
+## Technology Stack
 
-1. **Registration** - User creates account with basic information
-2. **Profile Completion** - Fill in professional details
-3. **Document Upload** - Upload required documents
-4. **Verification** - Submit for verification
-5. **Approval** - Registrar reviews and approves
-6. **Credential Issuance** - Receive digital credentials
+- Angular 19 with standalone components
+- Angular Material UI
+- Reactive Forms with validation
+- SCSS styling
 
-## Supported Entity Types
+## Prerequisites
 
-- Doctor
-- Nurse
-- Pharmacist
-- HealthFacility
+- Node.js 20.x or higher
+- Angular CLI 19.x
 
-## Setup
-
-### Prerequisites
-
-- Node.js 20.x
-- Angular CLI 17.x
-
-### Installation
+## Installation
 
 ```bash
-# Install Angular CLI
-npm install -g @angular/cli
-
 # Install dependencies
 npm install
 
@@ -55,15 +42,68 @@ ng build --configuration=production
 
 ## Configuration
 
-The portal uses `sunbird-rc-ui` configuration files:
+Configure the API endpoints in `src/environments/environment.ts`:
 
-- `forms.json` - Form definitions for each entity type
-- `layouts.json` - Page layout configurations
-- `search.json` - Search configuration
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'https://registry.healthflow.tech/api/v1',
+  keycloak: {
+    url: 'https://keycloak.healthflow.tech',
+    realm: 'sunbird-rc',
+    clientId: 'enrollment-portal'
+  }
+};
+```
 
-## Technology Stack
+## Deployment
 
-- Angular 17
-- Sunbird RC UI Toolkit
-- Angular Material
-- Keycloak Angular Adapter
+The portal is deployed on the frontend droplet (139.59.157.82) and served via Nginx on port 8080.
+
+### Production URLs
+
+- **Direct IP**: http://139.59.157.82:8080
+- **Domain**: https://enroll.healthflow.tech (requires DNS configuration)
+
+## Registration Flow
+
+1. **Personal Information**
+   - Select professional type (Doctor/Nurse/Pharmacist)
+   - Enter personal details (name, DOB, gender)
+   - Provide National ID (14-digit Egyptian ID)
+   - Contact information (email, phone, address)
+
+2. **Professional Details**
+   - Medical Syndicate Registration Number
+   - Years of experience
+   - Qualification (MBBS, MD, BSN, PharmD, etc.)
+   - Specialization
+   - Current employer
+
+3. **Documents & Submit**
+   - Review document requirements
+   - Accept consent declaration
+   - Submit registration
+
+## Project Structure
+
+```
+enrollment-portal/
+├── src/
+│   ├── app/
+│   │   ├── app.ts                    # Main app component
+│   │   ├── app.config.ts             # App configuration
+│   │   ├── app.routes.ts             # Routing configuration
+│   │   └── enrollment-form/          # Enrollment form component
+│   ├── environments/
+│   │   └── environment.ts            # Environment configuration
+│   ├── main.ts                       # Application entry point
+│   └── styles.scss                   # Global styles
+├── angular.json
+├── package.json
+└── README.md
+```
+
+## License
+
+Proprietary - HealthFlow Medical HCX

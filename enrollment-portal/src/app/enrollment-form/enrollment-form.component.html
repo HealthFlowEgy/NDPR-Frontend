@@ -1,0 +1,199 @@
+<div class="enrollment-container">
+  <mat-card class="enrollment-card">
+    <mat-card-header>
+      <mat-card-title>Healthcare Professional Registration</mat-card-title>
+      <mat-card-subtitle>Register as a healthcare professional in the HealthFlow Registry</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-stepper linear #stepper>
+        <!-- Step 1: Personal Information -->
+        <mat-step [stepControl]="personalInfoForm" label="Personal Information">
+          <form [formGroup]="personalInfoForm">
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Professional Type</mat-label>
+                <mat-select formControlName="entityType" required>
+                  <mat-option *ngFor="let type of entityTypes" [value]="type.value">
+                    {{ type.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row two-columns">
+              <mat-form-field appearance="outline">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" required>
+                <mat-error *ngIf="personalInfoForm.get('firstName')?.hasError('required')">
+                  First name is required
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" required>
+                <mat-error *ngIf="personalInfoForm.get('lastName')?.hasError('required')">
+                  Last name is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row two-columns">
+              <mat-form-field appearance="outline">
+                <mat-label>Date of Birth</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="dateOfBirth" required>
+                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Gender</mat-label>
+                <mat-select formControlName="gender" required>
+                  <mat-option value="Male">Male</mat-option>
+                  <mat-option value="Female">Female</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>National ID Number</mat-label>
+                <input matInput formControlName="nationalId" required>
+                <mat-hint>14-digit Egyptian National ID</mat-hint>
+                <mat-error *ngIf="personalInfoForm.get('nationalId')?.hasError('pattern')">
+                  Please enter a valid 14-digit National ID
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row two-columns">
+              <mat-form-field appearance="outline">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="email" required>
+                <mat-error *ngIf="personalInfoForm.get('email')?.hasError('email')">
+                  Please enter a valid email address
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Phone Number</mat-label>
+                <input matInput formControlName="phone" required>
+                <mat-hint>Include country code (e.g., +20)</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Address</mat-label>
+                <textarea matInput formControlName="address" rows="2" required></textarea>
+              </mat-form-field>
+            </div>
+
+            <div class="step-actions">
+              <button mat-raised-button color="primary" matStepperNext 
+                      [disabled]="!personalInfoForm.valid">
+                Next
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Step 2: Professional Information -->
+        <mat-step [stepControl]="professionalInfoForm" label="Professional Details">
+          <form [formGroup]="professionalInfoForm">
+            <div class="form-row two-columns">
+              <mat-form-field appearance="outline">
+                <mat-label>Registration Number</mat-label>
+                <input matInput formControlName="registrationNumber" required>
+                <mat-hint>Medical Syndicate Registration Number</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Years of Experience</mat-label>
+                <input matInput type="number" formControlName="yearsOfExperience" required>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Qualification</mat-label>
+                <input matInput formControlName="qualification" required>
+                <mat-hint>e.g., MBBS, MD, BSN, PharmD</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Specialization</mat-label>
+                <mat-select formControlName="specialization">
+                  <mat-option *ngFor="let spec of specializations" [value]="spec">
+                    {{ spec }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Current Employer</mat-label>
+                <input matInput formControlName="currentEmployer">
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Employer Address</mat-label>
+                <textarea matInput formControlName="employerAddress" rows="2"></textarea>
+              </mat-form-field>
+            </div>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>Back</button>
+              <button mat-raised-button color="primary" matStepperNext 
+                      [disabled]="!professionalInfoForm.valid">
+                Next
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Step 3: Documents & Consent -->
+        <mat-step [stepControl]="documentForm" label="Documents & Submit">
+          <form [formGroup]="documentForm">
+            <div class="document-section">
+              <h3>Required Documents</h3>
+              <p class="document-note">
+                Please have the following documents ready for verification:
+              </p>
+              <ul>
+                <li>Valid Professional License</li>
+                <li>National ID Card</li>
+                <li>Qualification Certificates</li>
+              </ul>
+            </div>
+
+            <div class="consent-section">
+              <mat-checkbox formControlName="consent" required>
+                I hereby declare that all information provided is accurate and complete. 
+                I consent to the verification of my credentials and understand that 
+                providing false information may result in rejection of my application 
+                and potential legal consequences.
+              </mat-checkbox>
+            </div>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>Back</button>
+              <button mat-raised-button color="primary" 
+                      (click)="onSubmit()"
+                      [disabled]="!documentForm.valid || isLoading">
+                <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+                <span *ngIf="!isLoading">Submit Registration</span>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+      </mat-stepper>
+    </mat-card-content>
+  </mat-card>
+</div>

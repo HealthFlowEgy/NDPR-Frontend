@@ -1,0 +1,50 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$healthflow-primary: mat.m2-define-palette(mat.$m2-blue-palette);
+$healthflow-accent: mat.m2-define-palette(mat.$m2-teal-palette);
+$healthflow-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+$healthflow-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $healthflow-primary,
+    accent: $healthflow-accent,
+    warn: $healthflow-warn,
+  )
+));
+
+@include mat.all-component-themes($healthflow-theme);
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+body {
+  background-color: #fafafa;
+}
+
+a {
+  color: #1976d2;
+  text-decoration: none;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.mat-mdc-snack-bar-container {
+  &.success-snackbar {
+    --mdc-snackbar-container-color: #4caf50;
+  }
+  
+  &.error-snackbar {
+    --mdc-snackbar-container-color: #f44336;
+  }
+}

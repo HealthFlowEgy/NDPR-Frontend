@@ -1,0 +1,98 @@
+.enrollment-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.enrollment-card {
+  mat-card-header {
+    margin-bottom: 1.5rem;
+    
+    mat-card-title {
+      font-size: 1.5rem;
+      color: #1976d2;
+    }
+    
+    mat-card-subtitle {
+      margin-top: 0.5rem;
+    }
+  }
+}
+
+.form-row {
+  margin-bottom: 1rem;
+  
+  mat-form-field {
+    width: 100%;
+  }
+  
+  &.two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.step-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.document-section {
+  background: #f5f5f5;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  
+  h3 {
+    margin-top: 0;
+    color: #1976d2;
+  }
+  
+  .document-note {
+    color: #666;
+    margin-bottom: 1rem;
+  }
+  
+  ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+.consent-section {
+  margin-bottom: 1.5rem;
+  
+  mat-checkbox {
+    line-height: 1.5;
+  }
+}
+
+mat-spinner {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+::ng-deep {
+  .mat-horizontal-stepper-header-container {
+    margin-bottom: 1.5rem;
+  }
+  
+  .mat-step-header .mat-step-icon {
+    background-color: #1976d2;
+  }
+  
+  .mat-step-header .mat-step-icon-selected {
+    background-color: #1976d2;
+  }
+}
