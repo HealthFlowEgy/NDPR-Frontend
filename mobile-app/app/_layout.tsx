@@ -4,8 +4,8 @@
  * Main app entry point with providers and initial setup.
  */
 
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, StyleSheet, Text } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { Provider as PaperProvider, MD3LightTheme, ActivityIndicator } from 'react-native-paper';
 import { Provider as ReduxProvider } from 'react-redux';
@@ -15,7 +15,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { store, useAppDispatch, useAppSelector, checkAuthStatus, selectIsAuthenticated, selectAuthLoading } from '../store';
 
 // Prevent splash screen from auto-hiding
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // Ignore errors if splash screen is already hidden
+});
 
 // Custom theme
 const theme = {
@@ -44,22 +46,34 @@ function AuthObserver() {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const isLoading = useAppSelector(selectAuthLoading);
   const [isReady, setIsReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Check auth status on mount
   useEffect(() => {
     const checkAuth = async () => {
-      await dispatch(checkAuthStatus());
-      setIsReady(true);
-      await SplashScreen.hideAsync();
+      try {
+        await dispatch(checkAuthStatus());
+      } catch (e: any) {
+        console.warn('Auth check failed:', e);
+        setError(e.message || 'Failed to check authentication');
+      } finally {
+        setIsReady(true);
+        try {
+          await SplashScreen.hideAsync();
+        } catch {
+          // Ignore errors if splash screen is already hidden
+        }
+      }
     };
     checkAuth();
-  }, []);
+  }, [dispatch]);
 
   // Handle navigation based on auth state
   useEffect(() => {
     if (!isReady || isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inMainGroup = segments[0] === '(main)';
 
     if (!isAuthenticated && !inAuthGroup) {
       // Redirect to login if not authenticated
@@ -68,13 +82,23 @@ function AuthObserver() {
       // Redirect to main if already authenticated
       router.replace('/(main)');
     }
-  }, [isAuthenticated, segments, isReady, isLoading]);
+  }, [isAuthenticated, segments, isReady, isLoading, router]);
 
   // Show loading while checking auth
   if (!isReady || isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3498db" />
+        <Text style={styles.loadingText}>Loading HealthFlow...</Text>
+      </View>
+    );
+  }
+
+  // Show error if auth check failed
+  if (error) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.errorText}>Error: {error}</Text>
       </View>
     );
   }
@@ -102,5 +126,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#7f8c8d',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#e74c3c',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 });
