@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  signing-service:
+    build: .
+    container_name: healthflow-signing
+    restart: unless-stopped
+    ports:
+      - "3340:3340"
+    environment:
+      - PORT=3340
+      - DATABASE_URL=postgres://healthflow:HiZCllteZjDFGHsmCrrBfDVY@healthflow-db:5432/signing
+      - KEYCLOAK_URL=https://keycloak.healthflow.tech
+      - KEYCLOAK_REALM=RegistryAdmin
+      - IDENTITY_SERVICE_URL=https://identity.healthflow.tech
+      - REGISTRY_URL=https://registry.healthflow.tech
+      - REQUEST_EXPIRY_MINUTES=15
+    networks:
+      - healthflow-network
+
+networks:
+  healthflow-network:
+    external: true

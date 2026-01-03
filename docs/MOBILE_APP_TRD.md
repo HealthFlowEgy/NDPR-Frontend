@@ -1,283 +1,589 @@
+# HealthFlow Mobile App - Technical Requirements Document (TRD)
 
-_This document is intended for the mobile development team. It outlines the technical requirements for building the HealthFlow mobile application, following best practices from Sunbird RC and the broader industry._
-
-# HealthFlow Mobile App - Technical Requirements Document
-
-**Document Version:** 1.0  
-**Author:** Manus AI  
+**Version:** 3.0 (Final - Validated)  
 **Date:** January 3, 2026  
-**Status:** Final
+**Author:** Manus AI  
+**Status:** ✅ All Backend Services Operational
 
 ---
 
-## 1. Overview
+## 1. Executive Summary
 
-The HealthFlow mobile application will serve two primary user groups:
-
-1.  **Healthcare Professionals:** Providing a secure digital wallet (eLocker) to manage their professional identity, view and present verifiable credentials (VCs), and receive real-time notifications.
-2.  **Public Users & Verifiers:** Enabling the public, employers, and authorities to instantly verify the authenticity of a professional's credentials by scanning a QR code.
-
-The application must be built for both iOS and Android platforms, ensuring a consistent, secure, and user-friendly experience.
-
-### 1.1 Key Features
-
-| Feature | User Group | Description |
-|---|---|---|
-| **Digital Wallet (eLocker)** | Professionals | Securely store, view, and manage all issued verifiable credentials. |
-| **QR Code Generation** | Professionals | Generate a dynamic QR code for each credential to present for verification. |
-| **Real-time Notifications** | Professionals | Receive instant alerts for credential issuance, expiration warnings, and system announcements. |
-| **Profile Management** | Professionals | View and manage personal and professional information. |
-| **Offline Access** | Professionals | Access and present credentials even without an internet connection. |
-| **QR Code Scanner** | Public / Verifiers | Scan a professional's QR code to get a real-time verification status from the registry. |
-| **Verification History** | Public / Verifiers | Keep a local history of scanned and verified credentials. |
-| **Biometric Security** | Professionals | Secure access to the digital wallet using Face ID, Touch ID, or device PIN. |
+This document provides the comprehensive technical requirements for the HealthFlow Mobile Application. All backend services have been validated and are operational. The mobile app will enable healthcare professionals to manage their digital credentials, receive and approve remote signing requests, and verify credentials via QR codes.
 
 ---
 
-## 2. Technology Stack & Architecture
+## 2. Technology Stack
 
-The mobile application will be developed using a modern, cross-platform stack to ensure code reusability and faster development cycles. The choice of technology is based on best practices observed in the Sunbird RC ecosystem and successful large-scale digital identity projects like DIVOC.
-
-### 2.1 Recommended Technology Stack
-
-| Component | Technology | Justification |
-|---|---|---|
-| **Framework** | **React Native with Expo** | Enables rapid, cross-platform development for iOS and Android from a single codebase. Expo simplifies the build process, over-the-air (OTA) updates, and access to native APIs. |
-| **State Management** | **Redux Toolkit** | Provides a predictable and scalable state management solution with excellent TypeScript support, ideal for managing user sessions, credentials, and notifications. |
-| **Navigation** | **React Navigation** | The community-standard library for routing and navigation in React Native apps. |
-| **UI Toolkit** | **React Native Paper / NativeWind** | A combination of a Material Design component library (Paper) and a utility-first CSS framework (NativeWind for Tailwind CSS) allows for beautiful, consistent, and easily customizable UIs. |
-| **QR Code Scanning** | **`react-native-vision-camera`** | A high-performance, flexible camera library that supports real-time frame processing, making it ideal for fast and accurate QR code scanning. [1] |
-| **Secure Storage** | **`expo-secure-store`** | Provides encrypted storage on the device using the native Keychain (iOS) and Keystore (Android), which is the most secure method for storing sensitive data like authentication tokens. [2] |
-| **Push Notifications** | **`expo-notifications`** | A comprehensive library for handling push notifications on both iOS and Android, essential for the real-time notification feature. |
-| **Database (Offline)** | **WatermelonDB / Realm** | A high-performance reactive database framework that is optimized for building complex applications on React Native, with a focus on real-world performance. It will be used for caching credentials for offline access. |
-
-### 2.2 Architecture Diagram
-
-```mermaid
-graph TD
-    subgraph Mobile App
-        A[UI Components] --> B{React Navigation};
-        B --> C[Screens];
-        C --> D{Redux Store};
-        D --> E[API Service];
-        C --> F[Secure Storage];
-        C --> G[Offline DB];
-    end
-
-    subgraph Backend Services
-        H[Keycloak];
-        I[Registry API];
-        J[Notification Service];
-    end
-
-    E --> H;
-    E --> I;
-    E --> J;
-
-    style A fill:#cde4ff
-    style C fill:#cde4ff
-    style F fill:#ffe6cc
-    style G fill:#ffe6cc
-    style H fill:#d5e8d4
-    style I fill:#d5e8d4
-    style J fill:#d5e8d4
-```
-
-### 2.3 Project Structure
-
-A well-organized project structure is crucial for maintainability. The following structure is recommended:
-
-```
-/healthflow-mobile
-|-- /src
-|   |-- /api                # API service definitions and configurations
-|   |-- /assets             # Images, fonts, and other static assets
-|   |-- /components         # Reusable UI components (e.g., CredentialCard, QRScanner)
-|   |-- /constants          # App-wide constants (e.g., colors, routes)
-|   |-- /hooks              # Custom React hooks (e.g., useBiometrics)
-|   |-- /navigation         # Navigation stack, tab, and drawer configurations
-|   |-- /screens            # Top-level screen components
-|   |-- /services           # Business logic services (e.g., AuthService, CredentialService)
-|   |-- /store              # Redux Toolkit store, slices, and selectors
-|   |-- /utils              # Utility functions (e.g., formatters, validators)
-|-- app.json                # Expo configuration file
-|-- package.json
-|-- tsconfig.json
-```
+| Category | Technology | Version | Purpose |
+|----------|------------|---------|---------|
+| **Framework** | React Native | 0.73+ | Cross-platform mobile development |
+| **Build Tool** | Expo | 50+ | Development and deployment |
+| **UI Toolkit** | React Native Paper | 5.x | Material Design components |
+| **State Management** | Redux Toolkit | 2.x | Global state management |
+| **Navigation** | React Navigation | 6.x | Screen navigation |
+| **Authentication** | `react-native-app-auth` | 7.x | OAuth 2.0 + PKCE |
+| **Secure Storage** | `expo-secure-store` | 5.x | Encrypted token storage |
+| **Biometrics** | `expo-local-authentication` | 11.x | Fingerprint/Face ID |
+| **QR Scanner** | `react-native-vision-camera` | 3.x | QR code scanning |
+| **Offline DB** | WatermelonDB | 0.27+ | Local credential cache |
+| **Push Notifications** | `expo-notifications` | 0.27+ | Signing request alerts |
 
 ---
 
-## 3. Implementation Details & Best Practices
+## 3. Backend Services
 
-This section provides detailed requirements and code examples for key features.
+### 3.1. Service URLs (Production)
 
-### 3.1 Authentication with Keycloak
+| Service | URL | Port | Status |
+|---------|-----|------|--------|
+| Registry API | `https://registry.healthflow.tech` | 443 | ✅ Operational |
+| Keycloak | `https://keycloak.healthflow.tech` | 443 | ✅ Operational |
+| Identity Service | `https://identity.healthflow.tech` | 443 | ✅ Operational |
+| Signing Service | `https://signing.healthflow.tech` | 443 | ✅ Operational |
+| Credentials Service | Internal only | 3334 | ✅ Operational |
+| Schema Service | Internal only | 3333 | ✅ Operational |
 
-Authentication will be handled via the `RegistryAdmin` realm in Keycloak, using the OAuth 2.0 Authorization Code Flow with PKCE for security.
-
-**Implementation:**
-
--   Use the `react-native-app-auth` library, which is a wrapper around AppAuth-iOS and AppAuth-Android and provides a secure and standard-compliant way to handle the OAuth flow.
--   Store the `access_token`, `refresh_token`, and `id_token` securely in `expo-secure-store`.
--   Implement a token refresh mechanism that uses the `refresh_token` to get a new `access_token` in the background without requiring the user to log in again.
-
-**Code Example (AuthService):**
+### 3.2. Environment Configuration
 
 ```typescript
-// src/services/AuthService.ts
+// config/environment.ts
+export const config = {
+  keycloak: {
+    url: 'https://keycloak.healthflow.tech',
+    realm: 'RegistryAdmin',
+    clientId: 'mobile-app',
+  },
+  api: {
+    registry: 'https://registry.healthflow.tech',
+    identity: 'https://identity.healthflow.tech',
+    signing: 'https://signing.healthflow.tech',
+  },
+  oauth: {
+    redirectUri: 'com.healthflow.mobile:/oauthredirect',
+    scopes: ['openid', 'profile', 'email'],
+  },
+};
+```
+
+---
+
+## 4. Keycloak Configuration
+
+### 4.1. Client Details
+
+| Property | Value |
+|----------|-------|
+| **Realm** | `RegistryAdmin` |
+| **Client ID** | `mobile-app` |
+| **Client Type** | Public |
+| **PKCE** | Enabled (S256) |
+| **Redirect URIs** | `com.healthflow.mobile:/oauthredirect`, `com.healthflow.mobile://oauthredirect` |
+
+### 4.2. OAuth 2.0 Endpoints
+
+| Endpoint | URL |
+|----------|-----|
+| Authorization | `https://keycloak.healthflow.tech/realms/RegistryAdmin/protocol/openid-connect/auth` |
+| Token | `https://keycloak.healthflow.tech/realms/RegistryAdmin/protocol/openid-connect/token` |
+| UserInfo | `https://keycloak.healthflow.tech/realms/RegistryAdmin/protocol/openid-connect/userinfo` |
+| Logout | `https://keycloak.healthflow.tech/realms/RegistryAdmin/protocol/openid-connect/logout` |
+| JWKS | `https://keycloak.healthflow.tech/realms/RegistryAdmin/protocol/openid-connect/certs` |
+
+---
+
+## 5. API Reference
+
+### 5.1. Identity Service (`https://identity.healthflow.tech`)
+
+#### 5.1.1. Generate DID
+
+```http
+POST /did/generate
+Content-Type: application/json
+
+{
+  "content": [
+    {
+      "alsoKnownAs": ["dr-ahmed-hassan-001"],
+      "services": [],
+      "method": "web"
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+[
+  {
+    "@context": ["https://www.w3.org/ns/did/v1"],
+    "id": "did:web:registry.healthflow.tech:681b62d8-f6fe-4300-aea7-76e556f3a313",
+    "alsoKnownAs": ["dr-ahmed-hassan-001"],
+    "verificationMethod": [
+      {
+        "id": "did:web:registry.healthflow.tech:681b62d8-f6fe-4300-aea7-76e556f3a313#key-0",
+        "type": "Ed25519VerificationKey2020",
+        "publicKeyMultibase": "z6Mkru26FDGaAsXxxPJPzmFNew1tbxH9RVWcYZDFWMTacn9d"
+      }
+    ]
+  }
+]
+```
+
+#### 5.1.2. Resolve DID
+
+```http
+GET /did/resolve/{did}
+```
+
+**Example:**
+```http
+GET /did/resolve/did:web:registry.healthflow.tech:681b62d8-f6fe-4300-aea7-76e556f3a313
+```
+
+#### 5.1.3. Sign Document
+
+```http
+POST /utils/sign
+Content-Type: application/json
+
+{
+  "DID": "did:web:registry.healthflow.tech:681b62d8-f6fe-4300-aea7-76e556f3a313",
+  "payload": {
+    "@context": [
+      "https://www.w3.org/2018/credentials/v1",
+      "https://w3id.org/security/suites/ed25519-2020/v1",
+      {"schema": "https://schema.org/"}
+    ],
+    "type": ["VerifiableCredential"],
+    "issuer": "did:web:registry.healthflow.tech:681b62d8-f6fe-4300-aea7-76e556f3a313",
+    "issuanceDate": "2026-01-03T20:00:00Z",
+    "credentialSubject": {
+      "id": "did:example:patient-12345",
+      "schema:name": "Mohamed Ali"
+    }
+  }
+}
+```
+
+**Response:** Returns the signed document with `proof` object added.
+
+#### 5.1.4. Verify Signature
+
+```http
+POST /utils/verify
+Content-Type: application/json
+
+{
+  "DID": "did:web:registry.healthflow.tech:681b62d8-f6fe-4300-aea7-76e556f3a313",
+  "payload": {
+    // Full signed document including proof
+  }
+}
+```
+
+**Response:** `true` (valid) or `false` (invalid)
+
+---
+
+### 5.2. Signing Service (`https://signing.healthflow.tech`)
+
+All endpoints require Bearer token authentication.
+
+#### 5.2.1. List Signing Requests
+
+```http
+GET /api/v1/signing-requests?status=pending
+Authorization: Bearer {access_token}
+```
+
+**Response:**
+```json
+{
+  "requests": [
+    {
+      "id": "uuid",
+      "professional_id": "prof-123",
+      "document_type": "prescription",
+      "requester_name": "Cairo Hospital",
+      "status": "pending",
+      "created_at": "2026-01-03T20:00:00Z",
+      "expires_at": "2026-01-03T20:15:00Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+#### 5.2.2. Get Signing Request Details
+
+```http
+GET /api/v1/signing-requests/{id}
+Authorization: Bearer {access_token}
+```
+
+#### 5.2.3. Approve Signing Request
+
+```http
+POST /api/v1/signing-requests/{id}/approve
+Authorization: Bearer {access_token}
+Content-Type: application/json
+
+{
+  "biometric_verified": true,
+  "device_info": "iPhone 15 Pro"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "approved",
+  "signed_document": { /* signed VC */ },
+  "message": "Document signed successfully"
+}
+```
+
+#### 5.2.4. Reject Signing Request
+
+```http
+POST /api/v1/signing-requests/{id}/reject
+Authorization: Bearer {access_token}
+Content-Type: application/json
+
+{
+  "reason": "I did not authorize this request",
+  "device_info": "iPhone 15 Pro"
+}
+```
+
+#### 5.2.5. Get Signing History
+
+```http
+GET /api/v1/signing-history?limit=50&offset=0
+Authorization: Bearer {access_token}
+```
+
+#### 5.2.6. Get Signing Statistics
+
+```http
+GET /api/v1/signing-stats
+Authorization: Bearer {access_token}
+```
+
+**Response:**
+```json
+{
+  "total_signed": 28,
+  "total_rejected": 2,
+  "total_pending": 1,
+  "total_expired": 5,
+  "total_requests": 36
+}
+```
+
+---
+
+### 5.3. DID Web Resolution
+
+DIDs can be resolved via standard web resolution:
+
+```http
+GET https://registry.healthflow.tech/{uuid}/did.json
+```
+
+**Example:**
+```http
+GET https://registry.healthflow.tech/681b62d8-f6fe-4300-aea7-76e556f3a313/did.json
+```
+
+---
+
+## 6. Authentication Flow
+
+### 6.1. OAuth 2.0 + PKCE Flow
+
+```typescript
+// services/auth.service.ts
 import { authorize, refresh, revoke } from 'react-native-app-auth';
+
+const authConfig = {
+  issuer: 'https://keycloak.healthflow.tech/realms/RegistryAdmin',
+  clientId: 'mobile-app',
+  redirectUrl: 'com.healthflow.mobile:/oauthredirect',
+  scopes: ['openid', 'profile', 'email'],
+  usePKCE: true,
+};
+
+export const login = async () => {
+  const result = await authorize(authConfig);
+  return {
+    accessToken: result.accessToken,
+    refreshToken: result.refreshToken,
+    idToken: result.idToken,
+    expiresAt: result.accessTokenExpirationDate,
+  };
+};
+
+export const refreshTokens = async (refreshToken: string) => {
+  const result = await refresh(authConfig, { refreshToken });
+  return result;
+};
+
+export const logout = async (idToken: string) => {
+  await revoke(authConfig, { tokenToRevoke: idToken });
+};
+```
+
+### 6.2. Secure Token Storage
+
+```typescript
+// services/storage.service.ts
 import * as SecureStore from 'expo-secure-store';
 
-const keycloakConfig = {
-  issuer: 'https://keycloak.healthflow.tech/realms/RegistryAdmin',
-  clientId: 'mobile-app', // A new client ID for the mobile app
-  redirectUrl: 'com.healthflow.mobile:/oauthredirect',
-  scopes: ['openid', 'profile', 'email', 'offline_access'],
+const KEYS = {
+  ACCESS_TOKEN: 'healthflow_access_token',
+  REFRESH_TOKEN: 'healthflow_refresh_token',
+  ID_TOKEN: 'healthflow_id_token',
+  USER_DID: 'healthflow_user_did',
 };
 
-class AuthService {
-  async signIn() {
-    const authState = await authorize(keycloakConfig);
-    await SecureStore.setItemAsync('authState', JSON.stringify(authState));
-    return authState;
-  }
+export const storeTokens = async (tokens: AuthTokens) => {
+  await SecureStore.setItemAsync(KEYS.ACCESS_TOKEN, tokens.accessToken);
+  await SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, tokens.refreshToken);
+  await SecureStore.setItemAsync(KEYS.ID_TOKEN, tokens.idToken);
+};
 
-  async refresh() {
-    const storedAuthState = await SecureStore.getItemAsync('authState');
-    if (!storedAuthState) throw new Error('Not authenticated');
+export const getAccessToken = async () => {
+  return SecureStore.getItemAsync(KEYS.ACCESS_TOKEN);
+};
 
-    const authState = JSON.parse(storedAuthState);
-    const newAuthState = await refresh(keycloakConfig, {
-      refreshToken: authState.refreshToken,
-    });
-
-    await SecureStore.setItemAsync('authState', JSON.stringify(newAuthState));
-    return newAuthState;
-  }
-
-  async signOut() {
-    const storedAuthState = await SecureStore.getItemAsync('authState');
-    if (!storedAuthState) return;
-
-    const authState = JSON.parse(storedAuthState);
-    await revoke(keycloakConfig, {
-      tokenToRevoke: authState.accessToken,
-    });
-
-    await SecureStore.deleteItemAsync('authState');
-  }
-}
-
-export default new AuthService();
+export const clearTokens = async () => {
+  await SecureStore.deleteItemAsync(KEYS.ACCESS_TOKEN);
+  await SecureStore.deleteItemAsync(KEYS.REFRESH_TOKEN);
+  await SecureStore.deleteItemAsync(KEYS.ID_TOKEN);
+};
 ```
 
-### 3.2 Digital Wallet & Offline Access
+---
 
-The digital wallet is the core feature for professionals. It must be fast, secure, and available offline.
+## 7. Remote Signing Flow
 
-**Implementation:**
+### 7.1. Sequence Diagram
 
--   On login, fetch all verifiable credentials from the backend API.
--   Store the credentials in the local offline database (WatermelonDB or Realm).
--   The UI should always read from the local database first, providing an instant-loading experience.
--   Implement a background sync mechanism to periodically update the credentials from the server.
-
-**Data Model (Credential):**
-
-```typescript
-// src/db/models/Credential.ts
-import { Model } from '@nozbe/watermelondb';
-import { field, text } from '@nozbe/watermelondb/decorators';
-
-export default class Credential extends Model {
-  static table = 'credentials';
-
-  @text('vc_jwt') vcJwt!: string;
-  @field('issuer_name') issuerName!: string;
-  @field('credential_type') credentialType!: string;
-  @field('issued_at') issuedAt!: number;
-  @field('expires_at') expiresAt?: number;
-  @field('is_revoked') isRevoked!: boolean;
-}
+```
+Hospital System          Signing Service          Mobile App          Identity Service
+      |                        |                       |                      |
+      |-- POST /signing-requests -->                   |                      |
+      |                        |-- Push Notification -->                      |
+      |                        |                       |                      |
+      |                        |<-- GET /signing-requests --                  |
+      |                        |-- Return pending list -->                    |
+      |                        |                       |                      |
+      |                        |                       |-- Biometric Auth     |
+      |                        |                       |                      |
+      |                        |<-- POST /approve -----                       |
+      |                        |                       |                      |
+      |                        |--------------- POST /utils/sign ------------>|
+      |                        |<------------- Signed Document ---------------|
+      |                        |                       |                      |
+      |                        |-- Return signed doc -->                      |
+      |<-- Webhook callback ---|                       |                      |
 ```
 
-### 3.3 QR Code Verification
-
-Verification must be fast and reliable. The process involves the professional generating a QR code and the verifier scanning it.
-
-**Professional's Flow (Generation):**
-
-1.  The user selects a credential to share.
-2.  The app generates a short-lived JWT containing the credential ID and a nonce.
-3.  This JWT is displayed as a QR code.
-
-**Verifier's Flow (Scanning):**
-
-1.  The verifier scans the QR code using the `react-native-vision-camera`.
-2.  The app extracts the JWT from the QR code.
-3.  The JWT is sent to the backend `/verify` endpoint.
-4.  The backend validates the JWT, fetches the credential status from the registry, and returns a signed verification result.
-5.  The app displays the verification result (e.g., "Valid", "Revoked", "Expired") along with key credential details.
-
-**Code Example (QRScanner Component):**
+### 7.2. Implementation
 
 ```typescript
-// src/components/QRScanner.tsx
-import React from 'react';
-import { Camera, useCameraDevice, useCodeScanner } from 'react-native-vision-camera';
+// services/signing.service.ts
+import { getAccessToken } from './storage.service';
+import * as LocalAuthentication from 'expo-local-authentication';
 
-const QRScanner = ({ onCodeScanned }) => {
-  const device = useCameraDevice('back');
-  const codeScanner = useCodeScanner({
-    codeTypes: ['qr'],
-    onCodeScanned: (codes) => {
-      if (codes.length > 0) {
-        onCodeScanned(codes[0].value);
-      }
-    },
+const SIGNING_API = 'https://signing.healthflow.tech/api/v1';
+
+export const getPendingRequests = async () => {
+  const token = await getAccessToken();
+  const response = await fetch(`${SIGNING_API}/signing-requests?status=pending`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.json();
+};
+
+export const approveRequest = async (requestId: string, deviceInfo: string) => {
+  // Require biometric authentication
+  const authResult = await LocalAuthentication.authenticateAsync({
+    promptMessage: 'Authenticate to sign document',
+    fallbackLabel: 'Use passcode',
   });
 
-  if (!device) return <Text>No camera device found.</Text>;
+  if (!authResult.success) {
+    throw new Error('Biometric authentication failed');
+  }
 
-  return <Camera style={StyleSheet.absoluteFill} device={device} isActive={true} codeScanner={codeScanner} />;
+  const token = await getAccessToken();
+  const response = await fetch(`${SIGNING_API}/signing-requests/${requestId}/approve`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      biometric_verified: true,
+      device_info: deviceInfo,
+    }),
+  });
+
+  return response.json();
+};
+
+export const rejectRequest = async (requestId: string, reason: string) => {
+  const token = await getAccessToken();
+  const response = await fetch(`${SIGNING_API}/signing-requests/${requestId}/reject`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ reason }),
+  });
+
+  return response.json();
 };
 ```
 
-### 3.4 Security Best Practices
+---
 
-Security is paramount for an application handling sensitive identity information.
+## 8. QR Code Verification
 
-| Practice | Implementation |
-|---|---|
-| **Biometric Authentication** | Use `expo-local-authentication` to protect access to the wallet section. Require biometrics or device PIN before displaying credentials or generating QR codes. |
-| **Root/Jailbreak Detection** | Use a library like `react-native-jail-monkey` to detect if the device is compromised. If it is, limit app functionality or prevent access to sensitive data. |
-| **SSL Pinning** | Implement SSL certificate pinning to prevent man-in-the-middle (MITM) attacks. This ensures the app only communicates with the authentic HealthFlow backend. Use a library like `react-native-ssl-pinning`. |
-| **Code Obfuscation** | Enable Hermes (the default JS engine for React Native) and use ProGuard (Android) and built-in iOS obfuscation to make the compiled application code harder to reverse-engineer. |
-| **Secure Data Handling** | Never store sensitive data in insecure locations like AsyncStorage. Use `expo-secure-store` for tokens and the encrypted offline database for credentials. Clear clipboard after a short period if copying sensitive information. |
+### 8.1. QR Code Format
+
+```json
+{
+  "type": "healthflow-credential",
+  "did": "did:web:registry.healthflow.tech:681b62d8-f6fe-4300-aea7-76e556f3a313",
+  "credential_id": "cred-12345"
+}
+```
+
+### 8.2. Verification Implementation
+
+```typescript
+// services/verification.service.ts
+const IDENTITY_API = 'https://identity.healthflow.tech';
+
+export const verifyCredential = async (signedCredential: object, signerDID: string) => {
+  const response = await fetch(`${IDENTITY_API}/utils/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      DID: signerDID,
+      payload: signedCredential,
+    }),
+  });
+
+  const isValid = await response.json();
+  return isValid === true;
+};
+
+export const resolveDID = async (did: string) => {
+  const response = await fetch(`${IDENTITY_API}/did/resolve/${encodeURIComponent(did)}`);
+  return response.json();
+};
+```
 
 ---
 
-## 4. API & Backend Dependencies
+## 9. Project Structure
 
-The mobile app will interact with the existing HealthFlow backend services. The following endpoints will be required.
-
-| Endpoint | Method | Description |
-|---|---|---|
-| `/auth/mobile/login` | POST | Initiates the mobile-specific OAuth flow. |
-| `/credentials` | GET | Fetches all verifiable credentials for the authenticated user. |
-| `/credentials/{id}/qr` | GET | Generates a short-lived JWT for QR code sharing. |
-| `/verify` | POST | Verifies a credential JWT from a scanned QR code. |
-| `/notifications` | GET | Fetches a history of notifications for the user. |
-| `/notifications/read` | POST | Marks notifications as read. |
+```
+healthflow-mobile/
+├── app/
+│   ├── (auth)/
+│   │   ├── login.tsx
+│   │   └── register.tsx
+│   ├── (main)/
+│   │   ├── index.tsx           # Dashboard
+│   │   ├── wallet.tsx          # Digital Wallet
+│   │   ├── signing.tsx         # Signing Requests
+│   │   ├── scanner.tsx         # QR Scanner
+│   │   └── settings.tsx
+│   └── _layout.tsx
+├── components/
+│   ├── CredentialCard.tsx
+│   ├── SigningRequestCard.tsx
+│   ├── QRScanner.tsx
+│   └── BiometricPrompt.tsx
+├── services/
+│   ├── auth.service.ts
+│   ├── storage.service.ts
+│   ├── signing.service.ts
+│   ├── verification.service.ts
+│   └── api.service.ts
+├── store/
+│   ├── slices/
+│   │   ├── authSlice.ts
+│   │   ├── credentialsSlice.ts
+│   │   └── signingSlice.ts
+│   └── index.ts
+├── config/
+│   └── environment.ts
+├── app.json
+├── package.json
+└── tsconfig.json
+```
 
 ---
 
-## 5. References
+## 10. Security Requirements
 
-[1] React Native VisionCamera Documentation. (n.d.). Retrieved from https://react-native-vision-camera.com/
+| Requirement | Implementation |
+|-------------|----------------|
+| Token Storage | `expo-secure-store` with encryption |
+| Biometric Auth | Required for all signing operations |
+| Certificate Pinning | Pin Keycloak and API certificates |
+| Session Timeout | Auto-logout after 15 minutes of inactivity |
+| Jailbreak Detection | Block app on rooted/jailbroken devices |
+| Request Expiry | Signing requests expire after 15 minutes |
 
-[2] Expo SecureStore Documentation. (n.d.). Retrieved from https://docs.expo.dev/versions/latest/sdk/secure-store/
+---
 
-[3] Sunbird RC eLocker UI. (n.d.). Retrieved from https://github.com/Sunbird-RC/sunbird-rc-elocker-ui
+## 11. Pre-Deployment Checklist
 
-[4] DIVOC: Digital Infrastructure for Verifiable Open Credentialing. (n.d.). Retrieved from https://github.com/egovernments/DIVOC
+- [x] Create `mobile-app` client in Keycloak RegistryAdmin realm
+- [x] Configure Nginx reverse proxy for `identity.healthflow.tech`
+- [x] Add DNS A record for `identity.healthflow.tech`
+- [x] Obtain SSL certificate for `identity.healthflow.tech`
+- [x] Deploy Signing Service (`healthflow-signing`)
+- [x] Add DNS A record for `signing.healthflow.tech`
+- [x] Obtain SSL certificate for `signing.healthflow.tech`
+- [x] Test DID generation flow end-to-end
+- [x] Test document signing flow end-to-end
+- [x] Test signature verification flow end-to-end
+- [ ] Configure push notification service (Firebase/APNs)
+- [ ] Set up app store accounts (Apple/Google)
+- [ ] Load test signing endpoint under concurrent requests
+
+---
+
+## 12. Bug Fixes Applied
+
+| Bug ID | Component | Issue | Resolution |
+|--------|-----------|-------|------------|
+| #1 | Identity Service | DID generation returning 500 | Fixed request body format - requires `content` wrapper array |
+| #2 | Missing API | No signing requests endpoints | Implemented new `healthflow-signing` microservice |
+| #3 | Verification | Returning only boolean | Documented correct usage - `DID` + `payload` parameters |
+
+---
+
+## 13. References
+
+1. [Sunbird RC Documentation](https://docs.sunbirdrc.dev/)
+2. [W3C Verifiable Credentials](https://www.w3.org/TR/vc-data-model/)
+3. [DID Web Method](https://w3c-ccg.github.io/did-method-web/)
+4. [React Native App Auth](https://github.com/FormidableLabs/react-native-app-auth)
+5. [Expo Documentation](https://docs.expo.dev/)
+
+---
+
+**Document Status:** Final and Validated  
+**All backend services are operational and ready for mobile app development.**
