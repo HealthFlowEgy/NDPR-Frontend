@@ -4,12 +4,12 @@
     "slug": "healthflow-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/icon.png",
     "scheme": "healthflow",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "splash": {
-      "image": "./assets/logo.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#1e3a5f"
     },
@@ -21,13 +21,13 @@
       "bundleIdentifier": "com.healthflow.mobile",
       "buildNumber": "1",
       "infoPlist": {
-        "NSCameraUsageDescription": "HealthFlow needs camera access to scan QR codes.",
-        "NSFaceIDUsageDescription": "Allow HealthFlow to use Face ID for authentication."
+        "NSCameraUsageDescription": "HealthFlow needs camera access to scan QR codes for credential verification.",
+        "NSFaceIDUsageDescription": "HealthFlow uses Face ID for secure authentication and document signing."
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1e3a5f"
       },
       "package": "com.healthflow.mobile",
@@ -39,7 +39,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/logo.png",
+      "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
     "plugins": [

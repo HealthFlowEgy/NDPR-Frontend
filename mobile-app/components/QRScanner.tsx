@@ -2,18 +2,14 @@
  * HealthFlow Mobile App - QRScanner Component
  * 
  * Camera-based QR code scanner for credential verification.
+ * Uses expo-camera for Expo SDK 52 compatibility.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, Dimensions, Platform } from 'react-native';
 import { Text, Button, ActivityIndicator, IconButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import {
-  Camera,
-  useCameraDevice,
-  useCodeScanner,
-  CameraPermissionStatus,
-} from 'react-native-vision-camera';
+import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 
 interface QRScannerProps {
   onScan: (data: string) => void;
@@ -21,7 +17,7 @@ interface QRScannerProps {
   isProcessing?: boolean;
 }
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const SCAN_AREA_SIZE = width * 0.7;
 
 const QRScanner: React.FC<QRScannerProps> = ({
@@ -29,42 +25,29 @@ const QRScanner: React.FC<QRScannerProps> = ({
   onClose,
   isProcessing = false,
 }) => {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [permission, requestPermission] = useCameraPermissions();
   const [isActive, setIsActive] = useState(true);
   const [torch, setTorch] = useState(false);
+  const [scanned, setScanned] = useState(false);
 
-  const device = useCameraDevice('back');
-
-  // Request camera permission
-  useEffect(() => {
-    requestPermission();
-  }, []);
-
-  const requestPermission = async () => {
-    const status = await Camera.requestCameraPermission();
-    setHasPermission(status === 'granted');
-  };
-
-  // Code scanner
-  const codeScanner = useCodeScanner({
-    codeTypes: ['qr'],
-    onCodeScanned: (codes) => {
-      if (codes.length > 0 && codes[0].value && !isProcessing) {
-        setIsActive(false);
-        onScan(codes[0].value);
-      }
-    },
-  });
+  const handleBarCodeScanned = useCallback((result: BarcodeScanningResult) => {
+    if (result.data && !isProcessing && !scanned) {
+      setScanned(true);
+      setIsActive(false);
+      onScan(result.data);
+    }
+  }, [isProcessing, scanned, onScan]);
 
   const handleRescan = useCallback(() => {
+    setScanned(false);
     setIsActive(true);
   }, []);
 
   // Loading state
-  if (hasPermission === null) {
+  if (!permission) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#3498db" />
+        <ActivityIndicator size="large" color="#1e3a5f" />
         <Text variant="bodyMedium" style={styles.loadingText}>
           Requesting camera permission...
         </Text>
@@ -73,7 +56,7 @@ const QRScanner: React.FC<QRScannerProps> = ({
   }
 
   // No permission state
-  if (hasPermission === false) {
+  if (!permission.granted) {
     return (
       <View style={styles.container}>
         <MaterialCommunityIcons name="camera-off" size={64} color="#e74c3c" />
@@ -87,28 +70,11 @@ const QRScanner: React.FC<QRScannerProps> = ({
           mode="contained"
           onPress={requestPermission}
           style={styles.permissionButton}
+          buttonColor="#1e3a5f"
         >
           Grant Permission
         </Button>
-        <Button mode="text" onPress={onClose}>
-          Go Back
-        </Button>
-      </View>
-    );
-  }
-
-  // No camera device
-  if (!device) {
-    return (
-      <View style={styles.container}>
-        <MaterialCommunityIcons name="camera-off" size={64} color="#e74c3c" />
-        <Text variant="titleMedium" style={styles.errorTitle}>
-          No Camera Found
-        </Text>
-        <Text variant="bodyMedium" style={styles.errorText}>
-          Unable to access camera device.
-        </Text>
-        <Button mode="text" onPress={onClose}>
+        <Button mode="text" onPress={onClose} textColor="#1e3a5f">
           Go Back
         </Button>
       </View>
@@ -118,12 +84,14 @@ const QRScanner: React.FC<QRScannerProps> = ({
   return (
     <View style={styles.container}>
       {/* Camera */}
-      <Camera
+      <CameraView
         style={StyleSheet.absoluteFill}
-        device={device}
-        isActive={isActive && !isProcessing}
-        codeScanner={codeScanner}
-        torch={torch ? 'on' : 'off'}
+        facing="back"
+        barcodeScannerSettings={{
+          barcodeTypes: ['qr'],
+        }}
+        onBarcodeScanned={isActive && !isProcessing ? handleBarCodeScanned : undefined}
+        enableTorch={torch}
       />
 
       {/* Overlay */}
@@ -183,6 +151,7 @@ const QRScanner: React.FC<QRScannerProps> = ({
               mode="contained"
               onPress={handleRescan}
               style={styles.rescanButton}
+              buttonColor="#1e3a5f"
             >
               Scan Again
             </Button>
@@ -262,7 +231,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 30,
     height: 30,
-    borderColor: '#3498db',
+    borderColor: '#c9a227',
   },
   topLeft: {
     top: 0,

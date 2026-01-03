@@ -11,16 +11,7 @@ HealthFlow Mobile is a React Native application that enables healthcare professi
 - **Credential Verification**: Scan and verify other professionals' credentials via QR codes
 - **Biometric Security**: Secure all signing operations with Face ID, Touch ID, or device PIN
 
-## 🎨 Branding
-
-The app is branded with the official HealthFlow colors:
-
-- **Primary (Navy Blue):** `#1e3a5f`
-- **Secondary (Gold):** `#c9a227`
-
----
-
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Component | Technology | Version |
 |-----------|------------|---------|

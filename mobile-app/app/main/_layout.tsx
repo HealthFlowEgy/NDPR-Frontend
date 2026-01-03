@@ -2,7 +2,6 @@
  * HealthFlow Mobile App - Main Layout
  * 
  * Bottom tab navigation for authenticated users.
- * Branded with HealthFlow colors: Navy Blue (#1e3a5f) and Gold (#c9a227)
  */
 
 import React, { useEffect } from 'react';
@@ -10,7 +9,6 @@ import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector, selectIsAuthenticated, fetchPendingRequests, selectPendingCount } from '../../store';
 import { useRouter } from 'expo-router';
-import { BRAND_COLORS } from '../_layout';
 
 export default function MainLayout() {
   const router = useRouter();
@@ -36,19 +34,14 @@ export default function MainLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: BRAND_COLORS.primary,
-        tabBarInactiveTintColor: BRAND_COLORS.textLight,
+        tabBarActiveTintColor: '#3498db',
+        tabBarInactiveTintColor: '#95a5a6',
         tabBarStyle: {
           backgroundColor: '#fff',
-          borderTopColor: BRAND_COLORS.border,
+          borderTopColor: '#ecf0f1',
           paddingBottom: 8,
           paddingTop: 8,
           height: 64,
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -83,9 +76,8 @@ export default function MainLayout() {
           ),
           tabBarBadge: pendingCount > 0 ? pendingCount : undefined,
           tabBarBadgeStyle: {
-            backgroundColor: BRAND_COLORS.secondary,
+            backgroundColor: '#e74c3c',
             fontSize: 10,
-            color: '#fff',
           },
         }}
       />

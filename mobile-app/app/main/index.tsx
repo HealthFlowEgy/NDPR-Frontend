@@ -2,16 +2,14 @@
  * HealthFlow Mobile App - Dashboard Screen
  * 
  * Main home screen showing overview of credentials and signing requests.
- * Branded with HealthFlow colors: Navy Blue (#1e3a5f) and Gold (#c9a227)
  */
 
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, Image } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { Text, Card, Button, Avatar, Chip, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { BRAND_COLORS } from '../_layout';
 import {
   useAppDispatch,
   useAppSelector,
@@ -51,9 +49,15 @@ const DashboardScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header with gradient background */}
-      <View style={styles.headerContainer}>
-        <View style={styles.headerContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
           <View>
             <Text variant="bodyMedium" style={styles.greeting}>
               Welcome back,
@@ -66,44 +70,24 @@ const DashboardScreen: React.FC = () => {
             size={48}
             label={(user?.given_name?.[0] || 'D').toUpperCase()}
             style={styles.avatar}
-            labelStyle={{ color: BRAND_COLORS.primary }}
           />
         </View>
-      </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh}
-            tintColor={BRAND_COLORS.primary}
-            colors={[BRAND_COLORS.primary]}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      >
         {/* Quick Stats */}
         <View style={styles.statsRow}>
           <Card style={styles.statCard}>
             <Card.Content style={styles.statContent}>
-              <View style={[styles.statIcon, { backgroundColor: `${BRAND_COLORS.primary}15` }]}>
-                <MaterialCommunityIcons name="file-document-outline" size={20} color={BRAND_COLORS.primary} />
-              </View>
               <Text variant="headlineMedium" style={styles.statValue}>
                 {pendingRequests.length}
               </Text>
               <Text variant="bodySmall" style={styles.statLabel}>
-                Pending
+                Pending Requests
               </Text>
             </Card.Content>
           </Card>
 
           <Card style={[styles.statCard, urgentCount > 0 && styles.urgentCard]}>
             <Card.Content style={styles.statContent}>
-              <View style={[styles.statIcon, { backgroundColor: urgentCount > 0 ? '#fdeaea' : `${BRAND_COLORS.secondary}20` }]}>
-                <MaterialCommunityIcons name="alert-circle" size={20} color={urgentCount > 0 ? BRAND_COLORS.error : BRAND_COLORS.secondary} />
-              </View>
               <Text
                 variant="headlineMedium"
                 style={[styles.statValue, urgentCount > 0 && styles.urgentValue]}
@@ -118,9 +102,6 @@ const DashboardScreen: React.FC = () => {
 
           <Card style={styles.statCard}>
             <Card.Content style={styles.statContent}>
-              <View style={[styles.statIcon, { backgroundColor: `${BRAND_COLORS.success}15` }]}>
-                <MaterialCommunityIcons name="check-circle" size={20} color={BRAND_COLORS.success} />
-              </View>
               <Text variant="headlineMedium" style={styles.statValue}>
                 {stats?.total_signed || 0}
               </Text>
@@ -142,7 +123,6 @@ const DashboardScreen: React.FC = () => {
                 mode="text"
                 compact
                 onPress={() => router.push('/(main)/signing')}
-                textColor={BRAND_COLORS.primary}
               >
                 View All
               </Button>
@@ -195,9 +175,7 @@ const DashboardScreen: React.FC = () => {
           <View style={styles.actionsGrid}>
             <Card style={styles.actionCard} onPress={() => router.push('/(main)/wallet')}>
               <Card.Content style={styles.actionContent}>
-                <View style={[styles.actionIcon, { backgroundColor: `${BRAND_COLORS.primary}15` }]}>
-                  <MaterialCommunityIcons name="wallet" size={28} color={BRAND_COLORS.primary} />
-                </View>
+                <MaterialCommunityIcons name="wallet" size={32} color="#3498db" />
                 <Text variant="labelLarge" style={styles.actionLabel}>
                   Wallet
                 </Text>
@@ -206,9 +184,7 @@ const DashboardScreen: React.FC = () => {
 
             <Card style={styles.actionCard} onPress={() => router.push('/(main)/signing')}>
               <Card.Content style={styles.actionContent}>
-                <View style={[styles.actionIcon, { backgroundColor: `${BRAND_COLORS.secondary}20` }]}>
-                  <MaterialCommunityIcons name="draw" size={28} color={BRAND_COLORS.secondary} />
-                </View>
+                <MaterialCommunityIcons name="draw" size={32} color="#27ae60" />
                 <Text variant="labelLarge" style={styles.actionLabel}>
                   Sign
                 </Text>
@@ -217,9 +193,7 @@ const DashboardScreen: React.FC = () => {
 
             <Card style={styles.actionCard} onPress={() => router.push('/(main)/scanner')}>
               <Card.Content style={styles.actionContent}>
-                <View style={[styles.actionIcon, { backgroundColor: `${BRAND_COLORS.primary}15` }]}>
-                  <MaterialCommunityIcons name="qrcode-scan" size={28} color={BRAND_COLORS.primary} />
-                </View>
+                <MaterialCommunityIcons name="qrcode-scan" size={32} color="#9b59b6" />
                 <Text variant="labelLarge" style={styles.actionLabel}>
                   Scan
                 </Text>
@@ -228,9 +202,7 @@ const DashboardScreen: React.FC = () => {
 
             <Card style={styles.actionCard} onPress={() => router.push('/(main)/settings')}>
               <Card.Content style={styles.actionContent}>
-                <View style={[styles.actionIcon, { backgroundColor: `${BRAND_COLORS.secondary}20` }]}>
-                  <MaterialCommunityIcons name="cog" size={28} color={BRAND_COLORS.secondary} />
-                </View>
+                <MaterialCommunityIcons name="cog" size={32} color="#e67e22" />
                 <Text variant="labelLarge" style={styles.actionLabel}>
                   Settings
                 </Text>
@@ -249,7 +221,6 @@ const DashboardScreen: React.FC = () => {
               mode="text"
               compact
               onPress={() => router.push('/(main)/wallet')}
-              textColor={BRAND_COLORS.primary}
             >
               View All
             </Button>
@@ -258,7 +229,7 @@ const DashboardScreen: React.FC = () => {
           {credentials.length === 0 ? (
             <Card style={styles.emptyCard}>
               <Card.Content style={styles.emptyContent}>
-                <MaterialCommunityIcons name="card-account-details-outline" size={48} color={BRAND_COLORS.border} />
+                <MaterialCommunityIcons name="card-account-details-outline" size={48} color="#bdc3c7" />
                 <Text variant="bodyMedium" style={styles.emptyText}>
                   No credentials yet
                 </Text>
@@ -272,13 +243,11 @@ const DashboardScreen: React.FC = () => {
                 onPress={() => router.push('/(main)/wallet')}
               >
                 <Card.Content style={styles.credentialContent}>
-                  <View style={[styles.credentialIcon, { backgroundColor: `${BRAND_COLORS.primary}15` }]}>
-                    <MaterialCommunityIcons
-                      name="certificate"
-                      size={24}
-                      color={BRAND_COLORS.primary}
-                    />
-                  </View>
+                  <MaterialCommunityIcons
+                    name="certificate"
+                    size={24}
+                    color="#3498db"
+                  />
                   <View style={styles.credentialInfo}>
                     <Text variant="titleSmall">
                       {cred.credentialSubject.professionalType}
@@ -287,7 +256,7 @@ const DashboardScreen: React.FC = () => {
                       {cred.credentialSubject.syndicateNumber}
                     </Text>
                   </View>
-                  <Chip mode="flat" style={styles.activeChip} textStyle={{ color: BRAND_COLORS.success }}>
+                  <Chip mode="flat" style={styles.activeChip}>
                     Active
                   </Chip>
                 </Card.Content>
@@ -303,70 +272,52 @@ const DashboardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BRAND_COLORS.background,
-  },
-  headerContainer: {
-    backgroundColor: BRAND_COLORS.primary,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  greeting: {
-    color: 'rgba(255,255,255,0.8)',
-  },
-  name: {
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  avatar: {
-    backgroundColor: BRAND_COLORS.secondary,
+    backgroundColor: '#f5f6fa',
   },
   scrollContent: {
     padding: 16,
-    paddingTop: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  greeting: {
+    color: '#7f8c8d',
+  },
+  name: {
+    fontWeight: '700',
+    color: '#2c3e50',
+  },
+  avatar: {
+    backgroundColor: '#3498db',
   },
   statsRow: {
     flexDirection: 'row',
     gap: 8,
     marginBottom: 24,
-    marginTop: -40,
   },
   statCard: {
     flex: 1,
-    borderRadius: 16,
-    elevation: 2,
+    borderRadius: 12,
   },
   urgentCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#fdeaea',
   },
   statContent: {
     alignItems: 'center',
-    paddingVertical: 16,
-  },
-  statIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
+    paddingVertical: 12,
   },
   statValue: {
     fontWeight: '700',
-    color: BRAND_COLORS.text,
+    color: '#2c3e50',
   },
   urgentValue: {
-    color: BRAND_COLORS.error,
+    color: '#e74c3c',
   },
   statLabel: {
-    color: BRAND_COLORS.textLight,
+    color: '#7f8c8d',
     marginTop: 4,
   },
   section: {
@@ -380,7 +331,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontWeight: '600',
-    color: BRAND_COLORS.text,
+    color: '#2c3e50',
   },
   requestCard: {
     marginBottom: 8,
@@ -388,7 +339,7 @@ const styles = StyleSheet.create({
   },
   urgentRequestCard: {
     borderLeftWidth: 4,
-    borderLeftColor: BRAND_COLORS.error,
+    borderLeftColor: '#e74c3c',
   },
   requestContent: {
     flexDirection: 'row',
@@ -400,18 +351,18 @@ const styles = StyleSheet.create({
   },
   requestType: {
     fontWeight: '600',
-    color: BRAND_COLORS.text,
+    color: '#2c3e50',
   },
   requestRequester: {
-    color: BRAND_COLORS.textLight,
+    color: '#7f8c8d',
     marginTop: 2,
   },
   requestPatient: {
-    color: BRAND_COLORS.textLight,
+    color: '#95a5a6',
     marginTop: 2,
   },
   urgentChip: {
-    backgroundColor: BRAND_COLORS.error,
+    backgroundColor: '#e74c3c',
   },
   urgentChipText: {
     color: '#fff',
@@ -424,22 +375,15 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     width: '47%',
-    borderRadius: 16,
+    borderRadius: 12,
   },
   actionContent: {
     alignItems: 'center',
     paddingVertical: 20,
   },
-  actionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   actionLabel: {
-    marginTop: 12,
-    color: BRAND_COLORS.text,
+    marginTop: 8,
+    color: '#2c3e50',
   },
   emptyCard: {
     borderRadius: 12,
@@ -449,7 +393,7 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   emptyText: {
-    color: BRAND_COLORS.textLight,
+    color: '#95a5a6',
     marginTop: 8,
   },
   credentialCard: {
@@ -461,22 +405,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  credentialIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   credentialInfo: {
     flex: 1,
   },
   credentialSubtext: {
-    color: BRAND_COLORS.textLight,
+    color: '#7f8c8d',
     marginTop: 2,
   },
   activeChip: {
-    backgroundColor: `${BRAND_COLORS.success}20`,
+    backgroundColor: '#d5f4e6',
   },
 });
 

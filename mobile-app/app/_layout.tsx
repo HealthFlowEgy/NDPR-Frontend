@@ -2,7 +2,6 @@
  * HealthFlow Mobile App - Root Layout
  * 
  * Main app entry point with providers and initial setup.
- * Branded with HealthFlow colors: Navy Blue (#1e3a5f) and Gold (#c9a227)
  */
 
 import React, { useEffect, useState } from 'react';
@@ -18,44 +17,21 @@ import { store, useAppDispatch, useAppSelector, checkAuthStatus, selectIsAuthent
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
-// HealthFlow Brand Colors
-export const BRAND_COLORS = {
-  primary: '#1e3a5f',      // Navy Blue
-  secondary: '#c9a227',    // Gold
-  primaryLight: '#2d5a8a', // Lighter Navy
-  primaryDark: '#152a45',  // Darker Navy
-  secondaryLight: '#d4b84a', // Lighter Gold
-  secondaryDark: '#a88820', // Darker Gold
-  success: '#27ae60',
-  error: '#e74c3c',
-  warning: '#f39c12',
-  info: '#3498db',
-  background: '#f5f6fa',
-  surface: '#ffffff',
-  text: '#2c3e50',
-  textLight: '#7f8c8d',
-  border: '#bdc3c7',
-};
-
-// Custom theme with HealthFlow branding
+// Custom theme
 const theme = {
   ...MD3LightTheme,
   colors: {
     ...MD3LightTheme.colors,
-    primary: BRAND_COLORS.primary,
-    secondary: BRAND_COLORS.secondary,
-    tertiary: BRAND_COLORS.primaryLight,
-    error: BRAND_COLORS.error,
-    background: BRAND_COLORS.background,
-    surface: BRAND_COLORS.surface,
+    primary: '#3498db',
+    secondary: '#27ae60',
+    tertiary: '#9b59b6',
+    error: '#e74c3c',
+    background: '#f5f6fa',
+    surface: '#ffffff',
     surfaceVariant: '#f8f9fa',
-    onSurface: BRAND_COLORS.text,
-    onSurfaceVariant: BRAND_COLORS.textLight,
-    outline: BRAND_COLORS.border,
-    primaryContainer: BRAND_COLORS.primaryLight,
-    secondaryContainer: BRAND_COLORS.secondaryLight,
-    onPrimary: '#ffffff',
-    onSecondary: '#ffffff',
+    onSurface: '#2c3e50',
+    onSurfaceVariant: '#7f8c8d',
+    outline: '#bdc3c7',
   },
   roundness: 12,
 };
@@ -98,7 +74,7 @@ function AuthObserver() {
   if (!isReady || isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={BRAND_COLORS.primary} />
+        <ActivityIndicator size="large" color="#3498db" />
       </View>
     );
   }
@@ -112,7 +88,7 @@ export default function RootLayout() {
     <ReduxProvider store={store}>
       <SafeAreaProvider>
         <PaperProvider theme={theme}>
-          <StatusBar style="light" backgroundColor={BRAND_COLORS.primary} />
+          <StatusBar style="dark" />
           <AuthObserver />
         </PaperProvider>
       </SafeAreaProvider>
@@ -125,6 +101,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: BRAND_COLORS.background,
+    backgroundColor: '#fff',
   },
 });
