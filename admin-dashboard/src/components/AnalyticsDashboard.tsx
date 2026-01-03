@@ -3,7 +3,7 @@ import { useDataProvider, Title } from 'react-admin';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import Grid from '@mui/material/Grid';
+import Grid from '@mui/material/Grid2';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import Table from '@mui/material/Table';
@@ -15,7 +15,6 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Chip from '@mui/material/Chip';
 
-// Simple bar chart component (no external library needed)
 interface BarChartProps {
     data: { label: string; value: number; color: string }[];
     title: string;
@@ -27,9 +26,7 @@ const SimpleBarChart: React.FC<BarChartProps> = ({ data, title }) => {
     return (
         <Card sx={{ height: '100%' }}>
             <CardContent>
-                <Typography variant="h6" gutterBottom>
-                    {title}
-                </Typography>
+                <Typography variant="h6" gutterBottom>{title}</Typography>
                 <Box sx={{ mt: 2 }}>
                     {data.map((item, index) => (
                         <Box key={index} sx={{ mb: 2 }}>
@@ -37,23 +34,8 @@ const SimpleBarChart: React.FC<BarChartProps> = ({ data, title }) => {
                                 <Typography variant="body2">{item.label}</Typography>
                                 <Typography variant="body2" fontWeight="bold">{item.value}</Typography>
                             </Box>
-                            <Box
-                                sx={{
-                                    height: 24,
-                                    bgcolor: '#e0e0e0',
-                                    borderRadius: 1,
-                                    overflow: 'hidden'
-                                }}
-                            >
-                                <Box
-                                    sx={{
-                                        height: '100%',
-                                        width: `${(item.value / maxValue) * 100}%`,
-                                        bgcolor: item.color,
-                                        borderRadius: 1,
-                                        transition: 'width 0.5s ease-in-out'
-                                    }}
-                                />
+                            <Box sx={{ height: 24, bgcolor: '#e0e0e0', borderRadius: 1, overflow: 'hidden' }}>
+                                <Box sx={{ height: '100%', width: `${(item.value / maxValue) * 100}%`, bgcolor: item.color, borderRadius: 1 }} />
                             </Box>
                         </Box>
                     ))}
@@ -63,72 +45,6 @@ const SimpleBarChart: React.FC<BarChartProps> = ({ data, title }) => {
     );
 };
 
-// Donut chart component
-interface DonutChartProps {
-    data: { label: string; value: number; color: string }[];
-    title: string;
-}
-
-const SimpleDonutChart: React.FC<DonutChartProps> = ({ data, title }) => {
-    const total = data.reduce((sum, item) => sum + item.value, 0);
-    let cumulativePercent = 0;
-    
-    const getCoordinatesForPercent = (percent: number) => {
-        const x = Math.cos(2 * Math.PI * percent);
-        const y = Math.sin(2 * Math.PI * percent);
-        return [x, y];
-    };
-    
-    return (
-        <Card sx={{ height: '100%' }}>
-            <CardContent>
-                <Typography variant="h6" gutterBottom>
-                    {title}
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 2 }}>
-                    <svg width="200" height="200" viewBox="-1 -1 2 2" style={{ transform: 'rotate(-90deg)' }}>
-                        {data.map((item, index) => {
-                            const percent = item.value / total;
-                            const [startX, startY] = getCoordinatesForPercent(cumulativePercent);
-                            cumulativePercent += percent;
-                            const [endX, endY] = getCoordinatesForPercent(cumulativePercent);
-                            const largeArcFlag = percent > 0.5 ? 1 : 0;
-                            
-                            const pathData = [
-                                `M ${startX} ${startY}`,
-                                `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
-                                `L 0 0`
-                            ].join(' ');
-                            
-                            return <path key={index} d={pathData} fill={item.color} />;
-                        })}
-                        <circle cx="0" cy="0" r="0.6" fill="white" />
-                    </svg>
-                </Box>
-                <Box sx={{ mt: 2 }}>
-                    {data.map((item, index) => (
-                        <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <Box
-                                sx={{
-                                    width: 16,
-                                    height: 16,
-                                    bgcolor: item.color,
-                                    borderRadius: '50%',
-                                    mr: 1
-                                }}
-                            />
-                            <Typography variant="body2">
-                                {item.label}: {item.value} ({total > 0 ? ((item.value / total) * 100).toFixed(1) : 0}%)
-                            </Typography>
-                        </Box>
-                    ))}
-                </Box>
-            </CardContent>
-        </Card>
-    );
-};
-
-// Recent activity table
 interface ActivityItem {
     id: string;
     type: string;
@@ -141,9 +57,7 @@ interface ActivityItem {
 const RecentActivityTable: React.FC<{ activities: ActivityItem[] }> = ({ activities }) => (
     <Card>
         <CardContent>
-            <Typography variant="h6" gutterBottom>
-                Recent Activity
-            </Typography>
+            <Typography variant="h6" gutterBottom>Recent Activity</Typography>
             <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                     <TableHead>
@@ -166,10 +80,7 @@ const RecentActivityTable: React.FC<{ activities: ActivityItem[] }> = ({ activit
                                     <Chip
                                         label={activity.status}
                                         size="small"
-                                        color={
-                                            activity.status === 'approved' ? 'success' :
-                                            activity.status === 'pending' ? 'warning' : 'error'
-                                        }
+                                        color={activity.status === 'approved' ? 'success' : activity.status === 'pending' ? 'warning' : 'error'}
                                     />
                                 </TableCell>
                             </TableRow>
@@ -184,26 +95,12 @@ const RecentActivityTable: React.FC<{ activities: ActivityItem[] }> = ({ activit
 const AnalyticsDashboard: React.FC = () => {
     const dataProvider = useDataProvider();
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({
-        doctors: 0,
-        nurses: 0,
-        pharmacists: 0,
-        physiotherapists: 0,
-        dentists: 0,
-        facilities: 0
-    });
+    const [stats, setStats] = useState({ doctors: 0, nurses: 0, pharmacists: 0, physiotherapists: 0, dentists: 0, facilities: 0 });
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const [
-                    doctorsRes,
-                    nursesRes,
-                    pharmacistsRes,
-                    physioRes,
-                    dentistsRes,
-                    facilitiesRes
-                ] = await Promise.all([
+                const results = await Promise.all([
                     dataProvider.getList('Doctor', { pagination: { page: 1, perPage: 1 }, sort: { field: 'id', order: 'ASC' }, filter: {} }).catch(() => ({ total: 0 })),
                     dataProvider.getList('Nurse', { pagination: { page: 1, perPage: 1 }, sort: { field: 'id', order: 'ASC' }, filter: {} }).catch(() => ({ total: 0 })),
                     dataProvider.getList('Pharmacist', { pagination: { page: 1, perPage: 1 }, sort: { field: 'id', order: 'ASC' }, filter: {} }).catch(() => ({ total: 0 })),
@@ -211,14 +108,13 @@ const AnalyticsDashboard: React.FC = () => {
                     dataProvider.getList('Dentist', { pagination: { page: 1, perPage: 1 }, sort: { field: 'id', order: 'ASC' }, filter: {} }).catch(() => ({ total: 0 })),
                     dataProvider.getList('HealthFacility', { pagination: { page: 1, perPage: 1 }, sort: { field: 'id', order: 'ASC' }, filter: {} }).catch(() => ({ total: 0 }))
                 ]);
-
                 setStats({
-                    doctors: doctorsRes.total || 0,
-                    nurses: nursesRes.total || 0,
-                    pharmacists: pharmacistsRes.total || 0,
-                    physiotherapists: physioRes.total || 0,
-                    dentists: dentistsRes.total || 0,
-                    facilities: facilitiesRes.total || 0
+                    doctors: results[0].total || 0,
+                    nurses: results[1].total || 0,
+                    pharmacists: results[2].total || 0,
+                    physiotherapists: results[3].total || 0,
+                    dentists: results[4].total || 0,
+                    facilities: results[5].total || 0
                 });
             } catch (error) {
                 console.error('Error fetching stats:', error);
@@ -226,7 +122,6 @@ const AnalyticsDashboard: React.FC = () => {
                 setLoading(false);
             }
         };
-
         fetchStats();
     }, [dataProvider]);
 
@@ -238,7 +133,6 @@ const AnalyticsDashboard: React.FC = () => {
         { label: 'Dentists', value: stats.dentists, color: '#00ACC1' }
     ];
 
-    // Mock recent activities
     const recentActivities: ActivityItem[] = [
         { id: '1', type: 'Doctor', name: 'Dr. Ahmed Hassan', action: 'Registration', date: '2026-01-03', status: 'approved' },
         { id: '2', type: 'Nurse', name: 'Sarah Mohamed', action: 'Registration', date: '2026-01-03', status: 'pending' },
@@ -248,92 +142,35 @@ const AnalyticsDashboard: React.FC = () => {
     ];
 
     if (loading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                <CircularProgress />
-            </Box>
-        );
+        return <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px"><CircularProgress /></Box>;
     }
 
     return (
         <Box sx={{ p: 3 }}>
             <Title title="Analytics Dashboard" />
-            
-            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                Analytics Dashboard
-            </Typography>
-            <Typography variant="body1" color="textSecondary" sx={{ mb: 4 }}>
-                Overview of healthcare professional registrations and activities
-            </Typography>
+            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#1976d2' }}>Analytics Dashboard</Typography>
+            <Typography variant="body1" color="textSecondary" sx={{ mb: 4 }}>Overview of healthcare professional registrations</Typography>
 
             <Grid container spacing={3}>
-                {/* Professional Distribution Bar Chart */}
-                <Grid item xs={12} md={6}>
-                    <SimpleBarChart
-                        data={professionalData}
-                        title="Professionals by Type"
-                    />
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <SimpleBarChart data={professionalData} title="Professionals by Type" />
                 </Grid>
-
-                {/* Professional Distribution Donut Chart */}
-                <Grid item xs={12} md={6}>
-                    <SimpleDonutChart
-                        data={professionalData}
-                        title="Distribution Overview"
-                    />
-                </Grid>
-
-                {/* Summary Statistics */}
-                <Grid item xs={12}>
-                    <Card>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <Card sx={{ height: '100%' }}>
                         <CardContent>
-                            <Typography variant="h6" gutterBottom>
-                                Summary Statistics
-                            </Typography>
-                            <Grid container spacing={2}>
-                                <Grid item xs={6} sm={4} md={2}>
-                                    <Box textAlign="center" p={2} bgcolor="#e3f2fd" borderRadius={2}>
-                                        <Typography variant="h4" color="primary">{stats.doctors}</Typography>
-                                        <Typography variant="body2">Doctors</Typography>
+                            <Typography variant="h6" gutterBottom>Summary</Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                                {professionalData.map((item, i) => (
+                                    <Box key={i} sx={{ textAlign: 'center', p: 2, bgcolor: '#f5f5f5', borderRadius: 2, minWidth: 100 }}>
+                                        <Typography variant="h4" sx={{ color: item.color }}>{item.value}</Typography>
+                                        <Typography variant="body2">{item.label}</Typography>
                                     </Box>
-                                </Grid>
-                                <Grid item xs={6} sm={4} md={2}>
-                                    <Box textAlign="center" p={2} bgcolor="#fff8e1" borderRadius={2}>
-                                        <Typography variant="h4" sx={{ color: '#C9A227' }}>{stats.nurses}</Typography>
-                                        <Typography variant="body2">Nurses</Typography>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={6} sm={4} md={2}>
-                                    <Box textAlign="center" p={2} bgcolor="#e8f5e9" borderRadius={2}>
-                                        <Typography variant="h4" sx={{ color: '#388E3C' }}>{stats.pharmacists}</Typography>
-                                        <Typography variant="body2">Pharmacists</Typography>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={6} sm={4} md={2}>
-                                    <Box textAlign="center" p={2} bgcolor="#f3e5f5" borderRadius={2}>
-                                        <Typography variant="h4" sx={{ color: '#7B1FA2' }}>{stats.physiotherapists}</Typography>
-                                        <Typography variant="body2">Physiotherapists</Typography>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={6} sm={4} md={2}>
-                                    <Box textAlign="center" p={2} bgcolor="#e0f7fa" borderRadius={2}>
-                                        <Typography variant="h4" sx={{ color: '#00ACC1' }}>{stats.dentists}</Typography>
-                                        <Typography variant="body2">Dentists</Typography>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={6} sm={4} md={2}>
-                                    <Box textAlign="center" p={2} bgcolor="#fff3e0" borderRadius={2}>
-                                        <Typography variant="h4" sx={{ color: '#F57C00' }}>{stats.facilities}</Typography>
-                                        <Typography variant="body2">Facilities</Typography>
-                                    </Box>
-                                </Grid>
-                            </Grid>
+                                ))}
+                            </Box>
                         </CardContent>
                     </Card>
                 </Grid>
-
-                {/* Recent Activity */}
-                <Grid item xs={12}>
+                <Grid size={12}>
                     <RecentActivityTable activities={recentActivities} />
                 </Grid>
             </Grid>
