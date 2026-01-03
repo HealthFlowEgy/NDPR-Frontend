@@ -1,35 +1,33 @@
 # HealthFlow Admin Dashboard
 
-React Admin dashboard for managing the HealthFlow healthcare registry.
+React Admin-based dashboard for managing the HealthFlow Healthcare Registry.
 
 ## Overview
 
-This dashboard is generated using [generator-create-rc-admin](https://github.com/Samagra-Development/generator-create-rc-admin), which automatically creates admin panels from Sunbird RC schemas.
+This admin dashboard provides a comprehensive interface for system administrators and registrars to manage healthcare professionals and entities in the Sunbird RC registry.
 
 ## Features
 
-- **Schema Management** - View and manage registry schemas
-- **Entity CRUD** - Create, read, update, delete registry entries
-- **User Management** - Manage registrars and administrators
-- **Attestation Workflow** - Review and approve attestation requests
-- **Reports & Analytics** - View registry statistics and reports
+- **Doctor Management** - Create, view, edit, and delete doctor records
+- **Nurse Management** - Manage nurse registrations
+- **Pharmacist Management** - Handle pharmacist records
+- **Health Facility Management** - Manage hospitals, clinics, and pharmacies
+- **Search & Filter** - Advanced search across all entity types
+- **Bulk Operations** - Import/export registry data
 
-## Supported Entities
+## Technology Stack
 
-- Doctor
-- Nurse
-- Pharmacist
-- HealthFacility
+- React 18 with TypeScript
+- React Admin 4.x
+- Material UI 5.x
+- Custom Sunbird RC Data Provider
 
-## Setup
+## Prerequisites
 
-### Prerequisites
+- Node.js 20.x or higher
+- npm 10.x or higher
 
-- Node.js 20.x
-- npm or yarn
-- Yeoman (`npm install -g yo`)
-
-### Installation
+## Installation
 
 ```bash
 # Install dependencies
@@ -44,7 +42,7 @@ npm run build
 
 ## Configuration
 
-Configure the following environment variables:
+Create a `.env` file with the following variables:
 
 ```env
 REACT_APP_API_URL=https://registry.healthflow.tech/api/v1
@@ -53,22 +51,37 @@ REACT_APP_KEYCLOAK_REALM=sunbird-rc
 REACT_APP_KEYCLOAK_CLIENT_ID=admin-dashboard
 ```
 
-## Technology Stack
+## Deployment
 
-- React 18
-- React Admin
-- Material UI
-- Keycloak JS Adapter
+The dashboard is deployed on the frontend droplet (139.59.157.82) and served via Nginx.
 
-## Generation
+### Production URLs
 
-This dashboard was generated using:
+- **Direct IP**: http://139.59.157.82
+- **Domain**: https://admin.healthflow.tech (requires DNS configuration)
 
-```bash
-yo create-rc-admin
+## Custom Data Provider
+
+The `sunbirdRcDataProvider.ts` provides a custom data provider that integrates with the Sunbird RC Registry API:
+
+- Handles Sunbird RC's unique `osid` identifier
+- Supports search endpoint with filters
+- Manages CRUD operations for all entity types
+
+## Project Structure
+
+```
+admin-dashboard/
+├── src/
+│   ├── App.tsx                    # Main application component
+│   ├── sunbirdRcDataProvider.ts   # Custom Sunbird RC data provider
+│   ├── index.tsx                  # Application entry point
+│   └── ...
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
-With the following configuration:
-- API Type: Sunbird-RC
-- Dashboard Title: HealthFlow Admin
-- Entities: Doctor, Nurse, Pharmacist, HealthFacility
+## License
+
+Proprietary - HealthFlow Medical HCX
