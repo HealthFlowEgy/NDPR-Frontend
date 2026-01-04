@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Admin, Resource, ListGuesser, EditGuesser, ShowGuesser, CustomRoutes } from 'react-admin';
+import { Admin, Resource, CustomRoutes } from 'react-admin';
 import { Route } from 'react-router-dom';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
@@ -7,15 +7,57 @@ import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy';
 import BusinessIcon from '@mui/icons-material/Business';
 import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
 import sunbirdRcDataProvider from './sunbirdRcDataProvider';
-import { authProvider, initKeycloak, keycloak, Permissions } from './authProvider';
+import { authProvider, initKeycloak, Permissions } from './authProvider';
 import Dashboard from './components/Dashboard';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
+
+// Import CRUD components
+import {
+    DoctorList,
+    DoctorCreate,
+    DoctorEdit,
+    DoctorShow,
+} from './resources/doctors';
+
+import {
+    NurseList,
+    NurseCreate,
+    NurseEdit,
+    NurseShow,
+} from './resources/nurses';
+
+import {
+    PharmacistList,
+    PharmacistCreate,
+    PharmacistEdit,
+    PharmacistShow,
+} from './resources/pharmacists';
+
+import {
+    PhysiotherapistList,
+    PhysiotherapistCreate,
+    PhysiotherapistEdit,
+    PhysiotherapistShow,
+} from './resources/physiotherapists';
+
+import {
+    DentistList,
+    DentistCreate,
+    DentistEdit,
+    DentistShow,
+} from './resources/dentists';
+
+import {
+    HealthFacilityList,
+    HealthFacilityCreate,
+    HealthFacilityEdit,
+    HealthFacilityShow,
+} from './resources/healthFacilities';
 
 // Loading component
 const LoadingScreen: React.FC = () => (
@@ -109,9 +151,10 @@ function App() {
                     {permissions.canManageDoctors && (
                         <Resource
                             name="Doctor"
-                            list={ListGuesser}
-                            edit={EditGuesser}
-                            show={ShowGuesser}
+                            list={DoctorList}
+                            create={DoctorCreate}
+                            edit={DoctorEdit}
+                            show={DoctorShow}
                             icon={LocalHospitalIcon}
                             options={{ label: 'Doctors' }}
                         />
@@ -121,9 +164,10 @@ function App() {
                     {permissions.canManageNurses && (
                         <Resource
                             name="Nurse"
-                            list={ListGuesser}
-                            edit={EditGuesser}
-                            show={ShowGuesser}
+                            list={NurseList}
+                            create={NurseCreate}
+                            edit={NurseEdit}
+                            show={NurseShow}
                             icon={MedicalServicesIcon}
                             options={{ label: 'Nurses' }}
                         />
@@ -133,9 +177,10 @@ function App() {
                     {permissions.canManagePharmacists && (
                         <Resource
                             name="Pharmacist"
-                            list={ListGuesser}
-                            edit={EditGuesser}
-                            show={ShowGuesser}
+                            list={PharmacistList}
+                            create={PharmacistCreate}
+                            edit={PharmacistEdit}
+                            show={PharmacistShow}
                             icon={LocalPharmacyIcon}
                             options={{ label: 'Pharmacists' }}
                         />
@@ -145,9 +190,10 @@ function App() {
                     {permissions.canManagePhysiotherapists && (
                         <Resource
                             name="Physiotherapist"
-                            list={ListGuesser}
-                            edit={EditGuesser}
-                            show={ShowGuesser}
+                            list={PhysiotherapistList}
+                            create={PhysiotherapistCreate}
+                            edit={PhysiotherapistEdit}
+                            show={PhysiotherapistShow}
                             icon={AccessibilityNewIcon}
                             options={{ label: 'Physiotherapists' }}
                         />
@@ -157,9 +203,10 @@ function App() {
                     {permissions.canManageDentists && (
                         <Resource
                             name="Dentist"
-                            list={ListGuesser}
-                            edit={EditGuesser}
-                            show={ShowGuesser}
+                            list={DentistList}
+                            create={DentistCreate}
+                            edit={DentistEdit}
+                            show={DentistShow}
                             icon={MedicalInformationIcon}
                             options={{ label: 'Dentists' }}
                         />
@@ -169,9 +216,10 @@ function App() {
                     {permissions.canManageFacilities && (
                         <Resource
                             name="HealthFacility"
-                            list={ListGuesser}
-                            edit={EditGuesser}
-                            show={ShowGuesser}
+                            list={HealthFacilityList}
+                            create={HealthFacilityCreate}
+                            edit={HealthFacilityEdit}
+                            show={HealthFacilityShow}
                             icon={BusinessIcon}
                             options={{ label: 'Health Facilities' }}
                         />
