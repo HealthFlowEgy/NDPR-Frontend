@@ -2,7 +2,6 @@ import Keycloak from 'keycloak-js';
 import { AuthProvider, UserIdentity } from 'react-admin';
 
 // Keycloak configuration following Sunbird RC best practices
-// Reference: Sunbird RC Admin Portal config.json structure
 const keycloakConfig = {
     url: process.env.REACT_APP_KEYCLOAK_URL || 'https://keycloak.healthflow.tech',
     realm: process.env.REACT_APP_KEYCLOAK_REALM || 'RegistryAdmin',
@@ -12,14 +11,38 @@ const keycloakConfig = {
 // Initialize Keycloak instance
 export const keycloak = new Keycloak(keycloakConfig);
 
+// Track initialization state to prevent double initialization in React Strict Mode
+let keycloakInitialized = false;
+let keycloakInitPromise: Promise<boolean> | null = null;
+
 // Initialize Keycloak with PKCE for enhanced security
 export const initKeycloak = (): Promise<boolean> => {
-    return keycloak.init({
+    // If already initialized, return the existing promise or resolved value
+    if (keycloakInitialized) {
+        return Promise.resolve(keycloak.authenticated || false);
+    }
+    
+    // If initialization is in progress, return the existing promise
+    if (keycloakInitPromise) {
+        return keycloakInitPromise;
+    }
+    
+    // Start initialization
+    keycloakInitPromise = keycloak.init({
         onLoad: 'login-required',
         checkLoginIframe: false,
-        pkceMethod: 'S256',
-        silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html'
+        pkceMethod: 'S256'
+    }).then((authenticated) => {
+        keycloakInitialized = true;
+        console.log('Keycloak initialized, authenticated:', authenticated);
+        return authenticated;
+    }).catch((error) => {
+        console.error('Keycloak init error:', error);
+        keycloakInitPromise = null; // Allow retry on error
+        throw error;
     });
+    
+    return keycloakInitPromise;
 };
 
 // Permission mapping based on Keycloak roles
