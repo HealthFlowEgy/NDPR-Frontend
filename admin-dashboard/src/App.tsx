@@ -7,6 +7,10 @@ import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy';
 import BusinessIcon from '@mui/icons-material/Business';
 import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
+import ScienceIcon from '@mui/icons-material/Science';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import RadarIcon from '@mui/icons-material/Radar';
+import SchemaIcon from '@mui/icons-material/Schema';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -58,6 +62,39 @@ import {
     HealthFacilityEdit,
     HealthFacilityShow,
 } from './resources/healthFacilities';
+
+import {
+    ClinicList,
+    ClinicCreate,
+    ClinicEdit,
+    ClinicShow,
+} from './resources/clinics';
+
+import {
+    LaboratoryList,
+    LaboratoryCreate,
+    LaboratoryEdit,
+    LaboratoryShow,
+} from './resources/laboratories';
+
+import {
+    PharmacyFacilityList,
+    PharmacyFacilityCreate,
+    PharmacyFacilityEdit,
+    PharmacyFacilityShow,
+} from './resources/pharmacyFacilities';
+
+import {
+    RadiologyCenterList,
+    RadiologyCenterCreate,
+    RadiologyCenterEdit,
+    RadiologyCenterShow,
+} from './resources/radiologyCenters';
+
+import {
+    SchemaList,
+    SchemaShow,
+} from './resources/schemas';
 
 // Loading component
 const LoadingScreen: React.FC = () => (
@@ -222,6 +259,69 @@ function App() {
                             show={HealthFacilityShow}
                             icon={BusinessIcon}
                             options={{ label: 'Health Facilities' }}
+                        />
+                    )}
+
+                    {/* Clinic Resource */}
+                    {permissions.canManageFacilities && (
+                        <Resource
+                            name="Clinic"
+                            list={ClinicList}
+                            create={ClinicCreate}
+                            edit={ClinicEdit}
+                            show={ClinicShow}
+                            icon={LocalHospitalIcon}
+                            options={{ label: 'Clinics' }}
+                        />
+                    )}
+
+                    {/* Laboratory Resource */}
+                    {permissions.canManageFacilities && (
+                        <Resource
+                            name="Laboratory"
+                            list={LaboratoryList}
+                            create={LaboratoryCreate}
+                            edit={LaboratoryEdit}
+                            show={LaboratoryShow}
+                            icon={ScienceIcon}
+                            options={{ label: 'Laboratories' }}
+                        />
+                    )}
+
+                    {/* Pharmacy Facility Resource */}
+                    {permissions.canManageFacilities && (
+                        <Resource
+                            name="PharmacyFacility"
+                            list={PharmacyFacilityList}
+                            create={PharmacyFacilityCreate}
+                            edit={PharmacyFacilityEdit}
+                            show={PharmacyFacilityShow}
+                            icon={StorefrontIcon}
+                            options={{ label: 'Pharmacies' }}
+                        />
+                    )}
+
+                    {/* Radiology Center Resource */}
+                    {permissions.canManageFacilities && (
+                        <Resource
+                            name="RadiologyCenter"
+                            list={RadiologyCenterList}
+                            create={RadiologyCenterCreate}
+                            edit={RadiologyCenterEdit}
+                            show={RadiologyCenterShow}
+                            icon={RadarIcon}
+                            options={{ label: 'Radiology Centers' }}
+                        />
+                    )}
+
+                    {/* Schema Resource (Read-only for viewing registered schemas) */}
+                    {permissions.isAdmin && (
+                        <Resource
+                            name="Schema"
+                            list={SchemaList}
+                            show={SchemaShow}
+                            icon={SchemaIcon}
+                            options={{ label: 'Schemas' }}
                         />
                     )}
 

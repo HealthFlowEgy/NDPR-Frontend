@@ -3,7 +3,10 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://api.healthflow.tech/api/v1',
+  apiUrl: 'https://registry.healthflow.tech/api/v1',
+  
+  // Identity Service API
+  identityUrl: 'https://identity.healthflow.tech',
   
   // Keycloak configuration following Sunbird RC Admin Portal pattern
   keycloak: {
@@ -12,6 +15,5 @@ export const environment = {
     clientId: 'enrollment-portal'
   },
   
-  // WebSocket configuration for real-time notifications
-  socketUrl: 'wss://api.healthflow.tech/ws'
+  
 };

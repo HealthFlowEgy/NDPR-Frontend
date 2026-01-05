@@ -2,15 +2,17 @@
 
 export const environment = {
   production: true,
-  apiUrl: 'https://api.healthflow.tech/api/v1',
+  
+  // Registry API
+  apiUrl: 'https://registry.healthflow.tech/api/v1',
+  
+  // Identity Service API
+  identityUrl: 'https://identity.healthflow.tech',
   
   // Keycloak configuration
   keycloak: {
     url: 'https://keycloak.healthflow.tech',
     realm: 'RegistryAdmin',
     clientId: 'enrollment-portal'
-  },
-  
-  // WebSocket configuration
-  socketUrl: 'wss://api.healthflow.tech/ws'
+  }
 };

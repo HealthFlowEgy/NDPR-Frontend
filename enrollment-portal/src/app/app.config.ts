@@ -7,7 +7,7 @@ import { KeycloakService, KeycloakBearerInterceptor } from 'keycloak-angular';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 
-// Keycloak initialization factory following Sunbird RC best practices
+// Keycloak initialization factory - enrollment portal allows anonymous access
 function initializeKeycloak(keycloak: KeycloakService): () => Promise<boolean> {
   return () =>
     keycloak.init({
@@ -19,18 +19,21 @@ function initializeKeycloak(keycloak: KeycloakService): () => Promise<boolean> {
       initOptions: {
         // Use 'check-sso' for enrollment portal to allow anonymous access
         onLoad: 'check-sso',
-        silentCheckSsoRedirectUri:
-          window.location.origin + '/assets/silent-check-sso.html',
+        // Disable silent check to avoid iframe timeout issues
+        silentCheckSsoRedirectUri: undefined,
         checkLoginIframe: false,
-        // Use PKCE for enhanced security (recommended by Sunbird RC)
+        // Use PKCE for enhanced security
         pkceMethod: 'S256'
       },
       // Load user profile when authenticated
-      loadUserProfileAtStartUp: true,
+      loadUserProfileAtStartUp: false,
       // Enable bearer token interceptor
       enableBearerInterceptor: true,
       // Exclude public endpoints from bearer token
-      bearerExcludedUrls: ['/assets', '/public']
+      bearerExcludedUrls: ['/assets', '/public', '/api']
+    }).catch(err => {
+      console.warn('Keycloak init failed, continuing without auth:', err);
+      return true; // Continue even if Keycloak fails
     });
 }
 
