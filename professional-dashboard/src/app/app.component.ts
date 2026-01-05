@@ -50,6 +50,10 @@ import { KeycloakService } from 'keycloak-angular';
             <mat-icon matListItemIcon>draw</mat-icon>
             <span matListItemTitle>Document Signing</span>
           </a>
+          <a mat-list-item routerLink="/identity" routerLinkActive="active">
+            <mat-icon matListItemIcon>fingerprint</mat-icon>
+            <span matListItemTitle>Digital Identity</span>
+          </a>
           <a mat-list-item routerLink="/settings" routerLinkActive="active">
             <mat-icon matListItemIcon>settings</mat-icon>
             <span matListItemTitle>Settings</span>
@@ -78,6 +82,10 @@ import { KeycloakService } from 'keycloak-angular';
             <mat-icon>arrow_drop_down</mat-icon>
           </button>
           <mat-menu #userMenu="matMenu">
+            <button mat-menu-item routerLink="/identity">
+              <mat-icon>fingerprint</mat-icon>
+              <span>Digital Identity</span>
+            </button>
             <button mat-menu-item routerLink="/settings">
               <mat-icon>person</mat-icon>
               <span>Profile</span>
