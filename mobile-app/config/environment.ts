@@ -2,7 +2,9 @@
  * HealthFlow Mobile App - Environment Configuration
  * 
  * All endpoints validated against production infrastructure.
- * TRD v3.0 - January 3, 2026
+ * TRD v3.0 - January 5, 2026
+ * 
+ * Updated: Added Credentials Service integration for full feature parity
  */
 
 export const config = {
@@ -19,7 +21,12 @@ export const config = {
     registry: 'https://registry.healthflow.tech',
     identity: 'https://identity.healthflow.tech',
     signing: 'https://signing.healthflow.tech',
+    credentials: 'https://credentials.healthflow.tech',
+    schema: 'https://schema.healthflow.tech',
   },
+
+  // JSON-LD Context for Verifiable Credentials
+  jsonLdContext: 'https://registry.healthflow.tech/context/healthflow-context.jsonld',
 
   // OAuth Settings
   oauth: {
@@ -31,7 +38,7 @@ export const config = {
   // App Settings
   app: {
     name: 'HealthFlow',
-    version: '1.0.0',
+    version: '1.1.0',
     bundleId: 'com.healthflow.mobile',
   },
 
@@ -49,6 +56,7 @@ export const config = {
     pushNotifications: true,
     qrScanner: true,
     remoteSign: true,
+    credentialIssuance: true,
   },
 };
 
@@ -87,6 +95,22 @@ export const apiRoutes = {
     reject: (id: string) => `${config.api.signing}/api/v1/signing-requests/${id}/reject`,
     history: `${config.api.signing}/api/v1/signing-history`,
     stats: `${config.api.signing}/api/v1/signing-stats`,
+  },
+
+  // Credentials Service
+  credentials: {
+    list: `${config.api.credentials}/credentials`,
+    search: `${config.api.credentials}/credentials/search`,
+    byId: (id: string) => `${config.api.credentials}/credentials/${encodeURIComponent(id)}`,
+    verify: (id: string) => `${config.api.credentials}/credentials/${encodeURIComponent(id)}/verify`,
+    issue: `${config.api.credentials}/credentials/issue`,
+    revoke: (id: string) => `${config.api.credentials}/credentials/${encodeURIComponent(id)}`,
+  },
+
+  // Schema Service
+  schema: {
+    list: `${config.api.schema}/schema`,
+    byId: (id: string) => `${config.api.schema}/schema/${encodeURIComponent(id)}`,
   },
 };
 
