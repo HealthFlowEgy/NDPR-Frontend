@@ -2,6 +2,7 @@
  * HealthFlow Mobile App - Type Definitions
  * 
  * Complete type definitions for the mobile application.
+ * Updated: January 5, 2026 - Added Credentials Service types
  */
 
 // ============================================
@@ -112,7 +113,113 @@ export interface ProfessionalCredential extends VerifiableCredential {
   };
 }
 
-export type ProfessionalType = 'Doctor' | 'Nurse' | 'Pharmacist';
+export type ProfessionalType = 
+  | 'Doctor' 
+  | 'Nurse' 
+  | 'Pharmacist'
+  | 'Dentist'
+  | 'Physiotherapist';
+
+// ============================================
+// Credentials Service Types (NEW)
+// ============================================
+
+/**
+ * Credential from the Credentials Service
+ */
+export interface Credential {
+  id: string;
+  '@context': string[];
+  type: string[];
+  issuer: string;
+  issuanceDate: string;
+  expirationDate?: string;
+  credentialSubject: {
+    id: string;
+    [key: string]: unknown;
+  };
+  proof?: CredentialProof;
+  status?: 'active' | 'revoked' | 'expired';
+}
+
+/**
+ * Credential verification result
+ */
+export interface CredentialVerification {
+  status: 'ISSUED' | 'REVOKED' | 'EXPIRED' | 'INVALID';
+  checks: CredentialVerificationCheck[];
+}
+
+export interface CredentialVerificationCheck {
+  active: 'OK' | 'FAILED';
+  revoked: 'OK' | 'FAILED';
+  expired: 'OK' | 'FAILED';
+  proof: 'OK' | 'FAILED';
+}
+
+/**
+ * Request to issue a new credential
+ */
+export interface IssueCredentialRequest {
+  credential: {
+    '@context': string[];
+    type: string[];
+    issuer: string;
+    issuanceDate: string;
+    expirationDate: string;
+    credentialSubject: {
+      id: string;
+      [key: string]: unknown;
+    };
+  };
+  credentialSchemaId: string;
+  credentialSchemaVersion: string;
+}
+
+/**
+ * Response from credential issuance
+ */
+export interface IssueCredentialResponse {
+  credential: Credential;
+  credentialId: string;
+}
+
+/**
+ * Query for searching credentials
+ */
+export interface CredentialSearchQuery {
+  type?: string[];
+  issuer?: string;
+  subject?: string;
+  status?: 'active' | 'revoked' | 'expired';
+  issuedAfter?: string;
+  issuedBefore?: string;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Credential type constants
+ */
+export type CredentialType = 
+  | 'MedicalLicenseCredential'
+  | 'DoctorCredential'
+  | 'NurseCredential'
+  | 'PharmacistCredential'
+  | 'DentistCredential'
+  | 'PhysiotherapistCredential'
+  | 'VerifiableCredential';
+
+/**
+ * Credential request form data
+ */
+export interface CredentialRequestForm {
+  credentialType: CredentialType;
+  professionalName: string;
+  licenseNumber: string;
+  specialty: string;
+  nationalId?: string;
+}
 
 // ============================================
 // Signing Types
@@ -281,9 +388,12 @@ export interface RootState {
 }
 
 export interface CredentialsState {
-  credentials: ProfessionalCredential[];
+  credentials: Credential[];
   userDID: DIDDocument | null;
   isLoading: boolean;
+  isSyncing: boolean;
+  isIssuing: boolean;
+  lastSyncTime: string | null;
   error: string | null;
 }
 

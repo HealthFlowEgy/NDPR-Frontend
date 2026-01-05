@@ -2,11 +2,24 @@
  * HealthFlow Mobile App - Wallet Screen
  * 
  * Digital wallet for managing verifiable credentials.
+ * Updated: January 5, 2026 - Added Credentials Service integration
  */
 
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, Modal } from 'react-native';
-import { Text, FAB, Portal, Dialog, Button, ActivityIndicator } from 'react-native-paper';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, RefreshControl, Modal, Alert } from 'react-native';
+import { 
+  Text, 
+  FAB, 
+  Portal, 
+  Dialog, 
+  Button, 
+  ActivityIndicator, 
+  Snackbar,
+  TextInput,
+  Chip,
+  Menu,
+  Divider,
+} from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
@@ -16,43 +29,123 @@ import {
   selectCredentials,
   selectUserDID,
   selectCredentialsLoading,
+  selectCredentialsSyncing,
+  selectCredentialsIssuing,
+  selectCredentialsError,
+  selectLastSyncTime,
+  selectActiveCredentials,
+  selectExpiringCredentials,
   loadUserDID,
   generateUserDID,
+  fetchCredentials,
+  syncCredentials,
+  issueCredential,
+  verifyCredential,
+  clearError,
 } from '../../store';
 import { CredentialCard } from '../../components';
+import CredentialsService from '../../services/credentials.service';
 import VerificationService from '../../services/verification.service';
-import { ProfessionalCredential } from '../../types';
+import { Credential, CredentialType, CredentialRequestForm } from '../../types';
+
+const CREDENTIAL_TYPES: { value: CredentialType; label: string }[] = [
+  { value: 'MedicalLicenseCredential', label: 'Medical License' },
+  { value: 'DoctorCredential', label: 'Doctor Credential' },
+  { value: 'NurseCredential', label: 'Nurse Credential' },
+  { value: 'PharmacistCredential', label: 'Pharmacist Credential' },
+  { value: 'DentistCredential', label: 'Dentist Credential' },
+  { value: 'PhysiotherapistCredential', label: 'Physiotherapist Credential' },
+];
 
 const WalletScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const credentials = useAppSelector(selectCredentials);
+  const activeCredentials = useAppSelector(selectActiveCredentials);
+  const expiringCredentials = useAppSelector(selectExpiringCredentials);
   const userDID = useAppSelector(selectUserDID);
   const isLoading = useAppSelector(selectCredentialsLoading);
+  const isSyncing = useAppSelector(selectCredentialsSyncing);
+  const isIssuing = useAppSelector(selectCredentialsIssuing);
+  const error = useAppSelector(selectCredentialsError);
+  const lastSyncTime = useAppSelector(selectLastSyncTime);
 
   const [refreshing, setRefreshing] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
-  const [selectedCredential, setSelectedCredential] = useState<ProfessionalCredential | null>(null);
+  const [selectedCredential, setSelectedCredential] = useState<Credential | null>(null);
   const [showDIDDialog, setShowDIDDialog] = useState(false);
   const [generatingDID, setGeneratingDID] = useState(false);
+  const [showRequestDialog, setShowRequestDialog] = useState(false);
+  const [showTypeMenu, setShowTypeMenu] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'active' | 'expiring'>('all');
+  const [snackbar, setSnackbar] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
+
+  // Request form state
+  const [requestForm, setRequestForm] = useState<CredentialRequestForm>({
+    credentialType: 'MedicalLicenseCredential',
+    professionalName: '',
+    licenseNumber: '',
+    specialty: '',
+    nationalId: '',
+  });
 
   useEffect(() => {
-    dispatch(loadUserDID());
+    loadData();
   }, []);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await dispatch(loadUserDID());
-    setRefreshing(false);
+  const loadData = async () => {
+    dispatch(loadUserDID());
+    dispatch(fetchCredentials());
   };
 
-  const handleShowQR = (credential: ProfessionalCredential) => {
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await dispatch(syncCredentials());
+    setRefreshing(false);
+  }, [dispatch]);
+
+  const handleShowQR = (credential: Credential) => {
     setSelectedCredential(credential);
     setShowQRModal(true);
   };
 
-  const handleCredentialPress = (credential: ProfessionalCredential) => {
-    // Could navigate to detail screen
-    console.log('Credential pressed:', credential.id);
+  const handleCredentialPress = (credential: Credential) => {
+    Alert.alert(
+      'Credential Details',
+      `Type: ${CredentialsService.formatCredentialType(credential.type)}\n` +
+      `Issued: ${new Date(credential.issuanceDate).toLocaleDateString()}\n` +
+      `Status: ${CredentialsService.getCredentialStatus(credential)}`,
+      [
+        { text: 'Close', style: 'cancel' },
+        { text: 'Verify', onPress: () => handleVerifyCredential(credential) },
+      ]
+    );
+  };
+
+  const handleVerifyCredential = async (credential: Credential) => {
+    if (!credential.id) return;
+    
+    const result = await dispatch(verifyCredential(credential.id));
+    
+    if (verifyCredential.fulfilled.match(result)) {
+      const verification = result.payload.verification;
+      const isValid = verification.status === 'ISSUED';
+      
+      setSnackbar({
+        visible: true,
+        message: isValid ? 'Credential verified successfully!' : `Credential status: ${verification.status}`,
+        type: isValid ? 'success' : 'error',
+      });
+    } else {
+      setSnackbar({
+        visible: true,
+        message: 'Verification failed',
+        type: 'error',
+      });
+    }
   };
 
   const handleGenerateDID = async () => {
@@ -60,10 +153,78 @@ const WalletScreen: React.FC = () => {
     try {
       await dispatch(generateUserDID(undefined));
       setShowDIDDialog(false);
+      setSnackbar({
+        visible: true,
+        message: 'Digital Identity generated successfully!',
+        type: 'success',
+      });
     } catch (error) {
-      console.error('Failed to generate DID:', error);
+      setSnackbar({
+        visible: true,
+        message: 'Failed to generate DID',
+        type: 'error',
+      });
     } finally {
       setGeneratingDID(false);
+    }
+  };
+
+  const handleRequestCredential = async () => {
+    if (!userDID) {
+      setSnackbar({
+        visible: true,
+        message: 'Please generate a Digital Identity first',
+        type: 'error',
+      });
+      return;
+    }
+
+    if (!requestForm.professionalName || !requestForm.licenseNumber) {
+      setSnackbar({
+        visible: true,
+        message: 'Please fill in all required fields',
+        type: 'error',
+      });
+      return;
+    }
+
+    const request = CredentialsService.buildCredentialRequest(
+      requestForm.credentialType,
+      userDID.id,
+      {
+        name: requestForm.professionalName,
+        licenseNumber: requestForm.licenseNumber,
+        specialty: requestForm.specialty,
+        nationalId: requestForm.nationalId,
+        professionalType: requestForm.credentialType.replace('Credential', ''),
+        licenseStatus: 'active',
+      },
+      requestForm.credentialType,
+      '1.0.0'
+    );
+
+    const result = await dispatch(issueCredential(request));
+
+    if (issueCredential.fulfilled.match(result)) {
+      setShowRequestDialog(false);
+      setRequestForm({
+        credentialType: 'MedicalLicenseCredential',
+        professionalName: '',
+        licenseNumber: '',
+        specialty: '',
+        nationalId: '',
+      });
+      setSnackbar({
+        visible: true,
+        message: 'Credential requested successfully!',
+        type: 'success',
+      });
+    } else {
+      setSnackbar({
+        visible: true,
+        message: error || 'Failed to request credential',
+        type: 'error',
+      });
     }
   };
 
@@ -75,22 +236,62 @@ const WalletScreen: React.FC = () => {
     );
   };
 
+  const getFilteredCredentials = () => {
+    switch (filter) {
+      case 'active':
+        return activeCredentials;
+      case 'expiring':
+        return expiringCredentials;
+      default:
+        return credentials;
+    }
+  };
+
+  const formatLastSync = () => {
+    if (!lastSyncTime) return 'Never';
+    const date = new Date(lastSyncTime);
+    return date.toLocaleTimeString();
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text variant="headlineSmall" style={styles.headerTitle}>
-          Digital Wallet
-        </Text>
-        <Text variant="bodyMedium" style={styles.headerSubtitle}>
-          {credentials.length} credential{credentials.length !== 1 ? 's' : ''}
-        </Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text variant="headlineSmall" style={styles.headerTitle}>
+              Digital Wallet
+            </Text>
+            <Text variant="bodySmall" style={styles.syncText}>
+              Last sync: {formatLastSync()}
+            </Text>
+          </View>
+          <Button
+            mode="contained"
+            compact
+            onPress={() => setShowRequestDialog(true)}
+            disabled={!userDID}
+            icon="plus"
+          >
+            Request
+          </Button>
+        </View>
       </View>
+
+      {/* Expiring Credentials Warning */}
+      {expiringCredentials.length > 0 && (
+        <View style={styles.warningBanner}>
+          <MaterialCommunityIcons name="alert" size={20} color="#f39c12" />
+          <Text variant="bodySmall" style={styles.warningText}>
+            {expiringCredentials.length} credential(s) expiring soon
+          </Text>
+        </View>
+      )}
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing || isSyncing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
       >
@@ -100,7 +301,7 @@ const WalletScreen: React.FC = () => {
             My Digital Identity
           </Text>
           
-          {isLoading ? (
+          {isLoading && !userDID ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color="#3498db" />
             </View>
@@ -136,11 +337,51 @@ const WalletScreen: React.FC = () => {
 
         {/* Credentials Section */}
         <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            My Credentials
-          </Text>
+          <View style={styles.sectionHeader}>
+            <Text variant="titleMedium" style={styles.sectionTitle}>
+              My Credentials
+            </Text>
+            <Text variant="bodySmall" style={styles.credentialCount}>
+              {credentials.length} total
+            </Text>
+          </View>
 
-          {credentials.length === 0 ? (
+          {/* Filter Chips */}
+          <View style={styles.filters}>
+            <Chip
+              selected={filter === 'all'}
+              onPress={() => setFilter('all')}
+              style={styles.filterChip}
+              compact
+            >
+              All ({credentials.length})
+            </Chip>
+            <Chip
+              selected={filter === 'active'}
+              onPress={() => setFilter('active')}
+              style={styles.filterChip}
+              compact
+            >
+              Active ({activeCredentials.length})
+            </Chip>
+            <Chip
+              selected={filter === 'expiring'}
+              onPress={() => setFilter('expiring')}
+              style={[styles.filterChip, expiringCredentials.length > 0 && styles.warningChip]}
+              compact
+            >
+              Expiring ({expiringCredentials.length})
+            </Chip>
+          </View>
+
+          {isLoading && credentials.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#3498db" />
+              <Text variant="bodyMedium" style={styles.loadingText}>
+                Loading credentials...
+              </Text>
+            </View>
+          ) : getFilteredCredentials().length === 0 ? (
             <View style={styles.emptyState}>
               <MaterialCommunityIcons
                 name="card-account-details-outline"
@@ -148,19 +389,33 @@ const WalletScreen: React.FC = () => {
                 color="#bdc3c7"
               />
               <Text variant="titleMedium" style={styles.emptyTitle}>
-                No Credentials Yet
+                {filter === 'all' ? 'No Credentials Yet' : `No ${filter} credentials`}
               </Text>
               <Text variant="bodyMedium" style={styles.emptySubtitle}>
-                Your verified professional credentials will appear here
+                {filter === 'all' 
+                  ? 'Request a credential to get started'
+                  : 'Try a different filter'}
               </Text>
+              {filter === 'all' && userDID && (
+                <Button
+                  mode="outlined"
+                  onPress={() => setShowRequestDialog(true)}
+                  style={styles.requestButton}
+                  icon="plus"
+                >
+                  Request Credential
+                </Button>
+              )}
             </View>
           ) : (
-            credentials.map((credential, index) => (
+            getFilteredCredentials().map((credential, index) => (
               <CredentialCard
                 key={credential.id || index}
                 credential={credential}
-                onPress={handleCredentialPress}
-                onShowQR={handleShowQR}
+                onPress={() => handleCredentialPress(credential)}
+                onShowQR={() => handleShowQR(credential)}
+                status={CredentialsService.getCredentialStatus(credential)}
+                icon={CredentialsService.getCredentialIcon(credential.type)}
               />
             ))
           )}
@@ -197,10 +452,10 @@ const WalletScreen: React.FC = () => {
             {selectedCredential && (
               <View style={styles.qrCredentialInfo}>
                 <Text variant="titleSmall">
-                  {selectedCredential.credentialSubject.professionalType}
+                  {CredentialsService.formatCredentialType(selectedCredential.type)}
                 </Text>
                 <Text variant="bodySmall" style={styles.qrCredentialSubtext}>
-                  {selectedCredential.credentialSubject.name}
+                  {selectedCredential.credentialSubject?.name || 'Professional Credential'}
                 </Text>
               </View>
             )}
@@ -240,6 +495,111 @@ const WalletScreen: React.FC = () => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      {/* Request Credential Dialog */}
+      <Portal>
+        <Dialog 
+          visible={showRequestDialog} 
+          onDismiss={() => setShowRequestDialog(false)}
+          style={styles.requestDialog}
+        >
+          <Dialog.Title>Request New Credential</Dialog.Title>
+          <Dialog.ScrollArea style={styles.dialogScrollArea}>
+            <ScrollView>
+              <View style={styles.formContainer}>
+                <Text variant="bodySmall" style={styles.formDescription}>
+                  Request a verifiable credential based on your professional information.
+                </Text>
+
+                <Menu
+                  visible={showTypeMenu}
+                  onDismiss={() => setShowTypeMenu(false)}
+                  anchor={
+                    <Button
+                      mode="outlined"
+                      onPress={() => setShowTypeMenu(true)}
+                      style={styles.typeButton}
+                      contentStyle={styles.typeButtonContent}
+                    >
+                      {CREDENTIAL_TYPES.find(t => t.value === requestForm.credentialType)?.label || 'Select Type'}
+                    </Button>
+                  }
+                >
+                  {CREDENTIAL_TYPES.map((type) => (
+                    <Menu.Item
+                      key={type.value}
+                      onPress={() => {
+                        setRequestForm({ ...requestForm, credentialType: type.value });
+                        setShowTypeMenu(false);
+                      }}
+                      title={type.label}
+                    />
+                  ))}
+                </Menu>
+
+                <TextInput
+                  mode="outlined"
+                  label="Professional Name *"
+                  value={requestForm.professionalName}
+                  onChangeText={(text) => setRequestForm({ ...requestForm, professionalName: text })}
+                  style={styles.input}
+                  placeholder="Dr. Ahmed Hassan"
+                />
+
+                <TextInput
+                  mode="outlined"
+                  label="License Number *"
+                  value={requestForm.licenseNumber}
+                  onChangeText={(text) => setRequestForm({ ...requestForm, licenseNumber: text })}
+                  style={styles.input}
+                  placeholder="MED-2024-12345"
+                />
+
+                <TextInput
+                  mode="outlined"
+                  label="Specialty"
+                  value={requestForm.specialty}
+                  onChangeText={(text) => setRequestForm({ ...requestForm, specialty: text })}
+                  style={styles.input}
+                  placeholder="Cardiology"
+                />
+
+                <TextInput
+                  mode="outlined"
+                  label="National ID"
+                  value={requestForm.nationalId}
+                  onChangeText={(text) => setRequestForm({ ...requestForm, nationalId: text })}
+                  style={styles.input}
+                  placeholder="29012345678901"
+                  keyboardType="numeric"
+                />
+              </View>
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Dialog.Actions>
+            <Button onPress={() => setShowRequestDialog(false)} disabled={isIssuing}>
+              Cancel
+            </Button>
+            <Button
+              onPress={handleRequestCredential}
+              loading={isIssuing}
+              disabled={isIssuing || !requestForm.professionalName || !requestForm.licenseNumber}
+            >
+              Submit Request
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
+      {/* Snackbar */}
+      <Snackbar
+        visible={snackbar.visible}
+        onDismiss={() => setSnackbar({ ...snackbar, visible: false })}
+        duration={3000}
+        style={snackbar.type === 'error' ? styles.errorSnackbar : styles.successSnackbar}
+      >
+        {snackbar.message}
+      </Snackbar>
     </SafeAreaView>
   );
 };
@@ -255,13 +615,29 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ecf0f1',
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   headerTitle: {
     fontWeight: '700',
     color: '#2c3e50',
   },
-  headerSubtitle: {
-    color: '#7f8c8d',
-    marginTop: 4,
+  syncText: {
+    color: '#95a5a6',
+    marginTop: 2,
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef9e7',
+    padding: 12,
+    gap: 8,
+  },
+  warningText: {
+    color: '#9a7b4f',
+    flex: 1,
   },
   scrollContent: {
     padding: 16,
@@ -269,14 +645,37 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontWeight: '600',
     color: '#2c3e50',
-    marginBottom: 12,
+  },
+  credentialCount: {
+    color: '#95a5a6',
+  },
+  filters: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  filterChip: {
+    backgroundColor: '#f8f9fa',
+  },
+  warningChip: {
+    backgroundColor: '#fef9e7',
   },
   loadingContainer: {
     padding: 32,
     alignItems: 'center',
+  },
+  loadingText: {
+    color: '#7f8c8d',
+    marginTop: 12,
   },
   didCard: {
     flexDirection: 'row',
@@ -331,6 +730,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: 'center',
   },
+  requestButton: {
+    marginTop: 16,
+  },
   qrModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -372,6 +774,35 @@ const styles = StyleSheet.create({
   },
   qrCloseButton: {
     width: '100%',
+  },
+  requestDialog: {
+    maxHeight: '80%',
+  },
+  dialogScrollArea: {
+    paddingHorizontal: 0,
+  },
+  formContainer: {
+    padding: 16,
+  },
+  formDescription: {
+    color: '#7f8c8d',
+    marginBottom: 16,
+  },
+  typeButton: {
+    marginBottom: 16,
+  },
+  typeButtonContent: {
+    justifyContent: 'flex-start',
+  },
+  input: {
+    marginBottom: 12,
+    backgroundColor: '#fff',
+  },
+  successSnackbar: {
+    backgroundColor: '#27ae60',
+  },
+  errorSnackbar: {
+    backgroundColor: '#e74c3c',
   },
 });
 
