@@ -16,8 +16,8 @@ function initializeKeycloak(keycloak: KeycloakService) {
       },
       initOptions: {
         onLoad: 'login-required',
-        silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
-        checkLoginIframe: false
+        checkLoginIframe: false,
+        silentCheckSsoFallback: false
       },
       enableBearerInterceptor: true,
       bearerPrefix: 'Bearer',
