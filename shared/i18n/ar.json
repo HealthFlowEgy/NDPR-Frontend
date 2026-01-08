@@ -1,0 +1,235 @@
+{
+  "app": {
+    "title": "السجل الوطني الرقمي للمرضى",
+    "subtitle": "نظام التأمين الصحي الشامل",
+    "footer": "جميع الحقوق محفوظة © 2026 هيلث فلو"
+  },
+  
+  "nav": {
+    "home": "الرئيسية",
+    "register": "التسجيل",
+    "profile": "الملف الشخصي",
+    "coverage": "التغطية التأمينية",
+    "credentials": "الشهادات",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج",
+    "login": "تسجيل الدخول"
+  },
+  
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "subtitle": "مرحباً بك في السجل الوطني الرقمي للمرضى",
+      "mobile": "رقم الموبايل",
+      "mobilePlaceholder": "أدخل رقم الموبايل",
+      "otp": "رمز التحقق",
+      "otpPlaceholder": "أدخل رمز التحقق",
+      "sendOtp": "إرسال رمز التحقق",
+      "resendOtp": "إعادة إرسال الرمز",
+      "verify": "تحقق",
+      "loginButton": "تسجيل الدخول",
+      "noAccount": "ليس لديك حساب؟",
+      "registerHere": "سجل هنا"
+    },
+    "register": {
+      "title": "تسجيل جديد",
+      "subtitle": "أنشئ حسابك في السجل الوطني الرقمي للمرضى"
+    }
+  },
+  
+  "patient": {
+    "registration": {
+      "title": "تسجيل مريض جديد",
+      "subtitle": "يرجى إدخال البيانات المطلوبة",
+      "steps": {
+        "identity": "البيانات الشخصية",
+        "contact": "بيانات الاتصال",
+        "address": "العنوان",
+        "uhis": "التأمين الصحي",
+        "review": "مراجعة"
+      }
+    },
+    "fields": {
+      "nationalId": "الرقم القومي",
+      "nationalIdPlaceholder": "أدخل الرقم القومي (14 رقم)",
+      "healthId": "الرقم الصحي",
+      "fullNameArabic": "الاسم بالكامل (عربي)",
+      "fullNameArabicPlaceholder": "أدخل الاسم بالكامل بالعربية",
+      "fullNameEnglish": "الاسم بالكامل (إنجليزي)",
+      "fullNameEnglishPlaceholder": "أدخل الاسم بالكامل بالإنجليزية",
+      "birthDate": "تاريخ الميلاد",
+      "gender": "النوع",
+      "genderMale": "ذكر",
+      "genderFemale": "أنثى",
+      "birthGovernorate": "محافظة الميلاد",
+      "currentGovernorate": "المحافظة الحالية",
+      "mobileNumber": "رقم الموبايل",
+      "mobileNumberPlaceholder": "01xxxxxxxxx",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "أدخل البريد الإلكتروني",
+      "motherName": "اسم الأم",
+      "fatherName": "اسم الأب",
+      "bloodType": "فصيلة الدم",
+      "maritalStatus": "الحالة الاجتماعية",
+      "maritalSingle": "أعزب/عزباء",
+      "maritalMarried": "متزوج/متزوجة",
+      "maritalDivorced": "مطلق/مطلقة",
+      "maritalWidowed": "أرمل/أرملة"
+    },
+    "address": {
+      "street": "الشارع",
+      "district": "الحي",
+      "city": "المدينة",
+      "governorate": "المحافظة",
+      "postalCode": "الرمز البريدي"
+    },
+    "emergency": {
+      "title": "جهة اتصال للطوارئ",
+      "name": "الاسم",
+      "relationship": "صلة القرابة",
+      "phone": "رقم الهاتف"
+    }
+  },
+  
+  "uhis": {
+    "title": "التأمين الصحي الشامل",
+    "status": {
+      "active": "نشط",
+      "pending": "قيد الانتظار",
+      "cancelled": "ملغي",
+      "suspended": "موقوف",
+      "not_enrolled": "غير مسجل",
+      "exempt": "معفى"
+    },
+    "tier": {
+      "title": "فئة التغطية",
+      "A": "الفئة أ - تغطية كاملة (0%)",
+      "B": "الفئة ب - مشاركة 10%",
+      "C": "الفئة ج - مشاركة 20%",
+      "D": "الفئة د - مشاركة 30%"
+    },
+    "copay": "نسبة المشاركة",
+    "coveragePeriod": "فترة التغطية",
+    "enrollmentDate": "تاريخ التسجيل",
+    "payor": "جهة التأمين",
+    "uhia": "الهيئة العامة للتأمين الصحي الشامل",
+    "services": {
+      "title": "الخدمات المغطاة",
+      "primary_care": "الرعاية الأولية",
+      "specialist_care": "رعاية التخصصات",
+      "emergency": "الطوارئ",
+      "hospitalization": "الإقامة بالمستشفى",
+      "surgery": "الجراحة",
+      "maternity": "رعاية الأمومة",
+      "pediatrics": "طب الأطفال",
+      "chronic_disease": "الأمراض المزمنة",
+      "mental_health": "الصحة النفسية",
+      "dental_basic": "طب الأسنان الأساسي",
+      "vision_basic": "العيون الأساسي",
+      "medications": "الأدوية",
+      "laboratory": "المعمل",
+      "radiology": "الأشعة",
+      "rehabilitation": "إعادة التأهيل"
+    },
+    "notEnrolled": {
+      "title": "غير مسجل في التأمين الصحي الشامل",
+      "message": "هذا المريض غير مسجل حاليًا في نظام التأمين الصحي الشامل.",
+      "enrollNow": "التسجيل الآن"
+    }
+  },
+  
+  "governorates": {
+    "Cairo": "القاهرة",
+    "Alexandria": "الإسكندرية",
+    "Port Said": "بورسعيد",
+    "Suez": "السويس",
+    "Damietta": "دمياط",
+    "Dakahlia": "الدقهلية",
+    "Sharqia": "الشرقية",
+    "Qalyubia": "القليوبية",
+    "Kafr El Sheikh": "كفر الشيخ",
+    "Gharbia": "الغربية",
+    "Monufia": "المنوفية",
+    "Beheira": "البحيرة",
+    "Ismailia": "الإسماعيلية",
+    "Giza": "الجيزة",
+    "Beni Suef": "بني سويف",
+    "Fayoum": "الفيوم",
+    "Minya": "المنيا",
+    "Asyut": "أسيوط",
+    "Sohag": "سوهاج",
+    "Qena": "قنا",
+    "Aswan": "أسوان",
+    "Luxor": "الأقصر",
+    "Red Sea": "البحر الأحمر",
+    "New Valley": "الوادي الجديد",
+    "Matruh": "مطروح",
+    "North Sinai": "شمال سيناء",
+    "South Sinai": "جنوب سيناء"
+  },
+  
+  "credentials": {
+    "title": "الشهادات الرقمية",
+    "healthCard": "بطاقة الصحة الرقمية",
+    "downloadCard": "تحميل البطاقة",
+    "shareCard": "مشاركة البطاقة",
+    "verifyCredential": "التحقق من الشهادة",
+    "scanQr": "مسح رمز QR",
+    "validUntil": "صالحة حتى",
+    "issuedBy": "صادرة من",
+    "issuedOn": "تاريخ الإصدار"
+  },
+  
+  "validation": {
+    "required": "هذا الحقل مطلوب",
+    "invalidNid": "الرقم القومي غير صحيح",
+    "nidLength": "الرقم القومي يجب أن يكون 14 رقم",
+    "nidCentury": "الرقم القومي يجب أن يبدأ بـ 2 أو 3",
+    "invalidMonth": "شهر الميلاد غير صحيح",
+    "invalidDay": "يوم الميلاد غير صحيح",
+    "futureDate": "تاريخ الميلاد لا يمكن أن يكون في المستقبل",
+    "invalidGovernorate": "كود المحافظة غير صحيح",
+    "invalidMobile": "رقم الموبايل غير صحيح",
+    "invalidEmail": "البريد الإلكتروني غير صحيح",
+    "minLength": "الحد الأدنى للأحرف هو {{min}}",
+    "maxLength": "الحد الأقصى للأحرف هو {{max}}"
+  },
+  
+  "actions": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "submit": "إرسال",
+    "next": "التالي",
+    "previous": "السابق",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "search": "بحث",
+    "filter": "تصفية",
+    "clear": "مسح",
+    "confirm": "تأكيد",
+    "close": "إغلاق",
+    "retry": "إعادة المحاولة",
+    "loading": "جاري التحميل...",
+    "processing": "جاري المعالجة..."
+  },
+  
+  "messages": {
+    "success": {
+      "registered": "تم التسجيل بنجاح",
+      "updated": "تم التحديث بنجاح",
+      "deleted": "تم الحذف بنجاح",
+      "saved": "تم الحفظ بنجاح"
+    },
+    "error": {
+      "generic": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+      "network": "خطأ في الاتصال. يرجى التحقق من اتصال الإنترنت.",
+      "notFound": "لم يتم العثور على البيانات المطلوبة",
+      "unauthorized": "غير مصرح لك بهذا الإجراء",
+      "serverError": "خطأ في الخادم. يرجى المحاولة لاحقاً"
+    },
+    "confirm": {
+      "delete": "هل أنت متأكد من الحذف؟",
+      "cancel": "هل أنت متأكد من الإلغاء؟ ستفقد جميع التغييرات."
+    }
+  }
+}

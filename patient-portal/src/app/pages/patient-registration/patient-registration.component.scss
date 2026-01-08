@@ -1,0 +1,366 @@
+// Patient Registration Component Styles
+
+.registration-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  
+  &.rtl {
+    direction: rtl;
+    text-align: right;
+  }
+}
+
+// Header
+.registration-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  
+  h1 {
+    font-size: 2rem;
+    color: #1a5f7a;
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: #666;
+  }
+}
+
+// Progress Steps
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 40px;
+    right: 40px;
+    height: 2px;
+    background: #ddd;
+    z-index: 0;
+  }
+  
+  .rtl &::before {
+    left: 40px;
+    right: 40px;
+  }
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  
+  .step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ddd;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .step-label {
+    font-size: 0.75rem;
+    color: #666;
+    text-align: center;
+    max-width: 80px;
+  }
+  
+  &.active {
+    .step-number {
+      background: #1a5f7a;
+      color: white;
+      box-shadow: 0 0 0 4px rgba(26, 95, 122, 0.2);
+    }
+    
+    .step-label {
+      color: #1a5f7a;
+      font-weight: 500;
+    }
+  }
+  
+  &.completed {
+    .step-number {
+      background: #28a745;
+      color: white;
+    }
+    
+    .step-label {
+      color: #28a745;
+    }
+  }
+}
+
+// Form Steps
+.form-step {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  
+  h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #eee;
+  }
+}
+
+// Form Groups
+.form-group {
+  margin-bottom: 1.5rem;
+  
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  input, select, textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    
+    &:focus {
+      outline: none;
+      border-color: #1a5f7a;
+      box-shadow: 0 0 0 3px rgba(26, 95, 122, 0.1);
+    }
+    
+    &:disabled, &[readonly] {
+      background-color: #f5f5f5;
+      cursor: not-allowed;
+    }
+  }
+  
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+    
+    .rtl & {
+      background-position: left 1rem center;
+      padding-right: 1rem;
+      padding-left: 2.5rem;
+    }
+  }
+  
+  .hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #888;
+  }
+  
+  .error {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #dc3545;
+  }
+  
+  &.half {
+    width: calc(50% - 0.5rem);
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  
+  .rtl & {
+    flex-direction: row-reverse;
+  }
+}
+
+// Review Section
+.review-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  
+  h3 {
+    font-size: 1rem;
+    color: #1a5f7a;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #ddd;
+  }
+}
+
+.review-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  .label {
+    color: #666;
+  }
+  
+  .value {
+    font-weight: 500;
+    color: #333;
+  }
+}
+
+// Consent Box
+.consent-box {
+  padding: 1.5rem;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  
+  label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+    
+    input[type="checkbox"] {
+      width: auto;
+      margin-top: 0.25rem;
+    }
+    
+    span {
+      font-size: 0.875rem;
+      color: #856404;
+      line-height: 1.5;
+    }
+  }
+}
+
+// Form Actions
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  
+  .rtl & {
+    flex-direction: row-reverse;
+  }
+}
+
+// Buttons
+.btn {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  &.btn-primary {
+    background: #1a5f7a;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      background: #154d63;
+    }
+  }
+  
+  &.btn-secondary {
+    background: #6c757d;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      background: #5a6268;
+    }
+  }
+  
+  &.btn-success {
+    background: #28a745;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      background: #218838;
+    }
+  }
+}
+
+// RTL Overrides
+.rtl {
+  input[dir="ltr"], 
+  input[type="email"], 
+  input[type="tel"] {
+    direction: ltr;
+    text-align: left;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .registration-container {
+    padding: 1rem;
+  }
+  
+  .progress-steps {
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    
+    &::before {
+      display: none;
+    }
+  }
+  
+  .step {
+    min-width: 60px;
+    
+    .step-label {
+      font-size: 0.625rem;
+    }
+  }
+  
+  .form-step {
+    padding: 1rem;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    
+    .form-group.half {
+      width: 100%;
+    }
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    
+    .btn {
+      width: 100%;
+    }
+  }
+}

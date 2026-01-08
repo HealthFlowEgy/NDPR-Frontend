@@ -1,0 +1,235 @@
+{
+  "app": {
+    "title": "National Digital Patient Registry",
+    "subtitle": "Universal Health Insurance System",
+    "footer": "All Rights Reserved © 2026 HealthFlow"
+  },
+  
+  "nav": {
+    "home": "Home",
+    "register": "Register",
+    "profile": "Profile",
+    "coverage": "Coverage",
+    "credentials": "Credentials",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login"
+  },
+  
+  "auth": {
+    "login": {
+      "title": "Login",
+      "subtitle": "Welcome to the National Digital Patient Registry",
+      "mobile": "Mobile Number",
+      "mobilePlaceholder": "Enter mobile number",
+      "otp": "Verification Code",
+      "otpPlaceholder": "Enter verification code",
+      "sendOtp": "Send Code",
+      "resendOtp": "Resend Code",
+      "verify": "Verify",
+      "loginButton": "Login",
+      "noAccount": "Don't have an account?",
+      "registerHere": "Register here"
+    },
+    "register": {
+      "title": "New Registration",
+      "subtitle": "Create your account in the National Digital Patient Registry"
+    }
+  },
+  
+  "patient": {
+    "registration": {
+      "title": "New Patient Registration",
+      "subtitle": "Please enter the required information",
+      "steps": {
+        "identity": "Personal Information",
+        "contact": "Contact Details",
+        "address": "Address",
+        "uhis": "Health Insurance",
+        "review": "Review"
+      }
+    },
+    "fields": {
+      "nationalId": "National ID",
+      "nationalIdPlaceholder": "Enter National ID (14 digits)",
+      "healthId": "Health ID",
+      "fullNameArabic": "Full Name (Arabic)",
+      "fullNameArabicPlaceholder": "Enter full name in Arabic",
+      "fullNameEnglish": "Full Name (English)",
+      "fullNameEnglishPlaceholder": "Enter full name in English",
+      "birthDate": "Date of Birth",
+      "gender": "Gender",
+      "genderMale": "Male",
+      "genderFemale": "Female",
+      "birthGovernorate": "Birth Governorate",
+      "currentGovernorate": "Current Governorate",
+      "mobileNumber": "Mobile Number",
+      "mobileNumberPlaceholder": "01xxxxxxxxx",
+      "email": "Email",
+      "emailPlaceholder": "Enter email address",
+      "motherName": "Mother's Name",
+      "fatherName": "Father's Name",
+      "bloodType": "Blood Type",
+      "maritalStatus": "Marital Status",
+      "maritalSingle": "Single",
+      "maritalMarried": "Married",
+      "maritalDivorced": "Divorced",
+      "maritalWidowed": "Widowed"
+    },
+    "address": {
+      "street": "Street",
+      "district": "District",
+      "city": "City",
+      "governorate": "Governorate",
+      "postalCode": "Postal Code"
+    },
+    "emergency": {
+      "title": "Emergency Contact",
+      "name": "Name",
+      "relationship": "Relationship",
+      "phone": "Phone Number"
+    }
+  },
+  
+  "uhis": {
+    "title": "Universal Health Insurance",
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "cancelled": "Cancelled",
+      "suspended": "Suspended",
+      "not_enrolled": "Not Enrolled",
+      "exempt": "Exempt"
+    },
+    "tier": {
+      "title": "Coverage Tier",
+      "A": "Tier A - Full Coverage (0%)",
+      "B": "Tier B - 10% Copay",
+      "C": "Tier C - 20% Copay",
+      "D": "Tier D - 30% Copay"
+    },
+    "copay": "Copay Percentage",
+    "coveragePeriod": "Coverage Period",
+    "enrollmentDate": "Enrollment Date",
+    "payor": "Payor",
+    "uhia": "Universal Health Insurance Authority",
+    "services": {
+      "title": "Covered Services",
+      "primary_care": "Primary Care",
+      "specialist_care": "Specialist Care",
+      "emergency": "Emergency",
+      "hospitalization": "Hospitalization",
+      "surgery": "Surgery",
+      "maternity": "Maternity",
+      "pediatrics": "Pediatrics",
+      "chronic_disease": "Chronic Disease",
+      "mental_health": "Mental Health",
+      "dental_basic": "Basic Dental",
+      "vision_basic": "Basic Vision",
+      "medications": "Medications",
+      "laboratory": "Laboratory",
+      "radiology": "Radiology",
+      "rehabilitation": "Rehabilitation"
+    },
+    "notEnrolled": {
+      "title": "Not Enrolled in UHIS",
+      "message": "This patient is not currently enrolled in the Universal Health Insurance System.",
+      "enrollNow": "Enroll Now"
+    }
+  },
+  
+  "governorates": {
+    "Cairo": "Cairo",
+    "Alexandria": "Alexandria",
+    "Port Said": "Port Said",
+    "Suez": "Suez",
+    "Damietta": "Damietta",
+    "Dakahlia": "Dakahlia",
+    "Sharqia": "Sharqia",
+    "Qalyubia": "Qalyubia",
+    "Kafr El Sheikh": "Kafr El Sheikh",
+    "Gharbia": "Gharbia",
+    "Monufia": "Monufia",
+    "Beheira": "Beheira",
+    "Ismailia": "Ismailia",
+    "Giza": "Giza",
+    "Beni Suef": "Beni Suef",
+    "Fayoum": "Fayoum",
+    "Minya": "Minya",
+    "Asyut": "Asyut",
+    "Sohag": "Sohag",
+    "Qena": "Qena",
+    "Aswan": "Aswan",
+    "Luxor": "Luxor",
+    "Red Sea": "Red Sea",
+    "New Valley": "New Valley",
+    "Matruh": "Matruh",
+    "North Sinai": "North Sinai",
+    "South Sinai": "South Sinai"
+  },
+  
+  "credentials": {
+    "title": "Digital Credentials",
+    "healthCard": "Digital Health Card",
+    "downloadCard": "Download Card",
+    "shareCard": "Share Card",
+    "verifyCredential": "Verify Credential",
+    "scanQr": "Scan QR Code",
+    "validUntil": "Valid Until",
+    "issuedBy": "Issued By",
+    "issuedOn": "Issued On"
+  },
+  
+  "validation": {
+    "required": "This field is required",
+    "invalidNid": "Invalid National ID",
+    "nidLength": "National ID must be 14 digits",
+    "nidCentury": "National ID must start with 2 or 3",
+    "invalidMonth": "Invalid birth month",
+    "invalidDay": "Invalid birth day",
+    "futureDate": "Birth date cannot be in the future",
+    "invalidGovernorate": "Invalid governorate code",
+    "invalidMobile": "Invalid mobile number",
+    "invalidEmail": "Invalid email address",
+    "minLength": "Minimum length is {{min}} characters",
+    "maxLength": "Maximum length is {{max}} characters"
+  },
+  
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "next": "Next",
+    "previous": "Previous",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "filter": "Filter",
+    "clear": "Clear",
+    "confirm": "Confirm",
+    "close": "Close",
+    "retry": "Retry",
+    "loading": "Loading...",
+    "processing": "Processing..."
+  },
+  
+  "messages": {
+    "success": {
+      "registered": "Registration successful",
+      "updated": "Updated successfully",
+      "deleted": "Deleted successfully",
+      "saved": "Saved successfully"
+    },
+    "error": {
+      "generic": "An error occurred. Please try again.",
+      "network": "Network error. Please check your internet connection.",
+      "notFound": "Requested data not found",
+      "unauthorized": "You are not authorized for this action",
+      "serverError": "Server error. Please try again later"
+    },
+    "confirm": {
+      "delete": "Are you sure you want to delete?",
+      "cancel": "Are you sure you want to cancel? All changes will be lost."
+    }
+  }
+}
